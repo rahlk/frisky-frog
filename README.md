@@ -1,2 +1,2 @@
-# Stange Soup
+# Strange Soup
 ![](logo.jpeg)
