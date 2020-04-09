@@ -1,2 +1,2 @@
 # Stange Soup
-![](logo.png)
+![](logo.jpeg)
