@@ -1,2 +1,0 @@
-# Strange Soup
-![](logo.png)
