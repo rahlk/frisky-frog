@@ -1,5 +1,7 @@
 import requests
 from typing import Dict, Tuple, List, Union, NewType
+from itertools import product
+from pdb import set_trace
 
 DateRange = Tuple(int, int)
 URL = NewType("URL", str)
@@ -38,37 +40,36 @@ class GHArchiveCrawler:
         self.year = year
         self.hour = hour
         self.month = month
+        self.range_requested: bool = True
 
     def _daterange2url(self) -> URL:
         """
         Converts user provided date range into a GH Archive URL.
 
-        Returns
-        -------
+        Yields
+        ------
         str:
             Download URL for the GH Archive data
         """
         
-        hh = "{:02d}".format(self.hour)
-        dd = "{:02d}".format(self.date)
-        mm = "{:02d}".format(self.month)
-        yy = "{:04d}".format(self.year)
-
-        if isinstance(self.hour, tuple):
-            hh = "{{{:02d}..{:02d}}}".format(*self.hour)
+        # Format ranges into appropriate string.
+        if not isinstance(self.hour, tuple):
+            hh = hh,
         
         if isinstance(self.date, tuple):
-            dd = "{{{:02d}..{:02d}}}".format(*self.date)
+            dd = dd,
         
         if isinstance(self.month, tuple):
-            mm = "{{{:02d}..{:02d}}}".format(*self.month)
+            mm = mm,
         
         if isinstance(self.year, tuple):
-            yy = "{{{:04d}..{:04d}}}".format(*self.year)
+            yy = yy, 
         
-        url_string = "https://data.gharchive.org/{}-{}-{}-{}.json.gz".format(hh, dd, mm, yy)
+        all_timestamps = tuple(product(yy, mm, dd, hh))
+        for y, m, d, h in all_timestamps:
+            set_trace()
+            yield "https://data.gharchive.org/{}-{}-{}-{}.json.gz".format(h, d, m, y)
 
-        return url_string
 
     def _url2json(self, gh_archive_url: URL) -> Dict:
         """
@@ -81,24 +82,25 @@ class GHArchiveCrawler:
 
         Returns
         -------
-        
+
         """
 
     def get_events_as_dataframe(self):
         """
-
+        Generate a DataFrame for all the mined attributes
         """
 
     def save_events_as_csv(self):
         """
-        Generate a CSV file with all the events
+        Generate a CSV file with all the mined attributes
         """
 
     def save_events_as_json(self):
         """
-
+        Generate a JSON file with all the mined attributes
         """
     
     
 if __name__ == "__main__":
-    
+    ghc = GHArchiveCrawler()
+    ghc._daterange2url()
