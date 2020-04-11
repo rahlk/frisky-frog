@@ -1,0 +1,8 @@
+nose
+glob2
+scipy
+pandas
+PTable
+sklearn
+matplotlib
+python-coveralls
