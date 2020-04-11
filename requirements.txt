@@ -6,3 +6,4 @@ PTable
 sklearn
 matplotlib
 python-coveralls
+google-cloud-bigquery
