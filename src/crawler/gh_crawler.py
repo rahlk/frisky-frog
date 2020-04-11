@@ -3,14 +3,14 @@ from typing import Dict, Tuple, List, Union, NewType
 from itertools import product
 from pdb import set_trace
 
-DateRange = Tuple(int, int)
+DateRange = Tuple[int, int]
 URL = NewType("URL", str)
 
 class GHArchiveCrawler:
-    def __init__(self, hour: Union(DateRange, int) = (0, 23),
-            date: Union(DateRange, int) = (1, 31),
-            month: Union(DateRange, int) = (1, 12),
-            year: Union(DateRange, int) = (2019, 2020)):
+    def __init__(self, hour: Union[DateRange, int] = (0, 23),
+            date: Union[DateRange, int] = (1, 31),
+            month: Union[DateRange, int] = (1, 12),
+            year: Union[DateRange, int] = (2019, 2020)):
         """
         A crawler for GH Archive (https://www.gharchive.org/).
 
@@ -54,21 +54,21 @@ class GHArchiveCrawler:
         
         # Format ranges into appropriate string.
         if not isinstance(self.hour, tuple):
-            hh = hh,
+            self.hour = self.hour,
         
-        if isinstance(self.date, tuple):
-            dd = dd,
+        if not isinstance(self.date, tuple):
+            self.date = self.date,
         
-        if isinstance(self.month, tuple):
-            mm = mm,
+        if not isinstance(self.month, tuple):
+            self.month = self.month,
         
-        if isinstance(self.year, tuple):
-            yy = yy, 
+        if not isinstance(self.year, tuple):
+            self.year = self.year,
         
-        all_timestamps = tuple(product(yy, mm, dd, hh))
-        for y, m, d, h in all_timestamps:
-            set_trace()
-            yield "https://data.gharchive.org/{}-{}-{}-{}.json.gz".format(h, d, m, y)
+        all_timestamps = tuple(product(self.year, self.month, self.date, self.hour))
+        
+        for yy, mm, dd, hh in all_timestamps:
+            yield "https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz".format(yy, mm, dd, hh)
 
 
     def _url2json(self, gh_archive_url: URL) -> Dict:
@@ -99,8 +99,9 @@ class GHArchiveCrawler:
         """
         Generate a JSON file with all the mined attributes
         """
-    
+
+
     
 if __name__ == "__main__":
-    ghc = GHArchiveCrawler()
+    crawler = GHArchiveCrawler()
     ghc._daterange2url()
