@@ -5,5 +5,6 @@ pandas
 PTable
 sklearn
 matplotlib
+virtualenv
 python-coveralls
 google-cloud-bigquery
