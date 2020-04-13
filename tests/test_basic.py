@@ -26,12 +26,15 @@ class TestCrawler(unittest.TestCase):
             count += 1
         self.assertEqual(count, 12)
 
-    # def test__url2dictlist(self):
-    #     crawl = Crawler(hour=(14), date=(1), month=(1), year=2018)
-    #     data = crawl._url2dictlist()
-    #     self.assertEqual(isinstance(data, list), True)
-    #     self.assertEqual(isinstance(data[0], dict), True)
+    def test_save_events_as_json(self):
+        crawl = Crawler(hour=(0, 23), date=(1, 31), month=(1), year=2020)
+        dataframe = crawl.save_events_as_json()
+
+    def test_save_events_as_csv(self):
+        crawl = Crawler(hour=(0, 23), date=(1, 31), month=(1), year=2020)
+        dataframe = crawl.save_events_as_csv()
 
     def test_get_events_as_dataframe(self):
         crawl = Crawler(hour=(0, 23), date=(1, 31), month=(1), year=2020)
-        crawl.get_events_as_dataframe()
+        dataframe = crawl.get_events_as_dataframe()
+        set_trace()

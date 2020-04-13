@@ -1,3 +1,5 @@
+import os
+import sys
 import json
 import gzip
 import certifi
@@ -8,13 +10,19 @@ from pdb import set_trace
 from itertools import product
 from urllib3 import PoolManager
 from collections import defaultdict
+from pathlib import Path, PosixPath
 from typing import Dict, Tuple, List, Union, NewType
 
 # Common types used here.
-URL = NewType("URL", str)
+URL = NewType('URL', str)
 DateRange = Tuple[int, int]
 Iterable = Union[set, list, tuple]
-PandasDataFrame = NewType("PandasDataFrame", pd.core.frame.DataFrame)
+PandasDataFrame = NewType('PandasDataFrame', pd.core.frame.DataFrame)
+Path = NewType('Path', PosixPath)
+
+# Add project source to path
+root = Path(os.path.abspath(os.path.join(
+    os.getcwd().split('frisky-frog')[0], 'frisky-frog/src')))
 
 
 class Crawler:
@@ -61,22 +69,23 @@ class Crawler:
                  month: Union[DateRange, int] = (1, 12),
                  year: Union[DateRange, int] = (2019, 2020),
                  event_set: set = {
-                     "PushEvent",
-                     "ForkEvent",
-                     "StarEvent",
-                     "LabelEvent",
-                     "IssuesEvent",
-                     "StatusEvent",
-                     "PullRequestEvent",
-                     "IssuesCommentEvent",
-                     "CommitCommentEvent",
-                     "PullRequestReviewEvent",
-                     "PullRequestReviewCommentEvent"}):
+                     'PushEvent',
+                     'ForkEvent',
+                     'StarEvent',
+                     'LabelEvent',
+                     'IssuesEvent',
+                     'StatusEvent',
+                     'PullRequestEvent',
+                     'IssuesCommentEvent',
+                     'CommitCommentEvent',
+                     'PullRequestReviewEvent',
+                     'PullRequestReviewCommentEvent'}):
 
         self.date = date
         self.year = year
         self.hour = hour
         self.month = month
+        self.mined_data_df = None
         self.event_set = event_set
 
     def update_eventset(self, new_eventset: Iterable) -> None:
@@ -89,7 +98,7 @@ class Crawler:
 
         """
         assert isinstance(new_eventset, (set, list, tuple)
-                          ), "The parameter new_eventset is not any of 'set', 'list', 'tuple'."
+                          ), 'The parameter new_eventset is not any of 'set', 'list', 'tuple'.'
         self.event_set = set(new_eventset)
 
     @staticmethod
@@ -173,7 +182,7 @@ class Crawler:
         all_timestamps = tuple(product(year, month, date, hour))
 
         for yy, mm, dd, hh in all_timestamps:
-            yield "https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz".format(yy, mm, dd, hh)
+            yield 'https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz'.format(yy, mm, dd, hh)
 
     @staticmethod
     def filter_by_event(json_data: dict, filter_set: set) -> bool:
@@ -219,7 +228,7 @@ class Crawler:
         compressed_json = BytesIO(response.data)
         with gzip.GzipFile(fileobj=compressed_json) as json_bytes:
             json_str = json_bytes.read().decode('utf-8')
-            for json_value in json_str.split("\n"):
+            for json_value in json_str.split('\n'):
                 if self._is_valid_json(json_value):
                     data = json.loads(json_value)
                     if self.filter_by_event(data, self.event_set):
@@ -227,14 +236,9 @@ class Crawler:
 
         return dict_list
 
-    def get_events_as_dataframe(self) -> PandasDataFrame:
+    def _events_dataframe(self) -> None:
         """
         Generate a DataFrame for all the mined attributes
-
-        Returns
-        -------
-        DataFrame: 
-            All mined data as a pandas DataFrame
         """
 
         all_events = []
@@ -244,34 +248,68 @@ class Crawler:
         mined_data_dict = defaultdict(lambda: defaultdict(int))
 
         for event in all_events:
-            event_type = event["type"]
-            repo_name = event["repo"]["name"]
+            event_type = event['type']
+            repo_name = event['repo']['name']
             mined_data_dict[event_type][repo_name] += 1
 
         mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
         mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
         mined_data_df.sort_values(
-            by="TotalEvents", ascending=False, inplace=True)
-        set_trace()
+            by='TotalEvents', ascending=False, inplace=True)
 
-    def save_events_as_csv(self, save_location, fname) -> None:
+        self.mined_data_df = mined_data_df
+
+    def get_events_as_dataframe(self) -> PandasDataFrame:
+        """
+        Generate a pandas file with all the mined attributes
+
+        Returns
+        -------
+        DataFrame: 
+            All mined data as a pandas DataFrame
+        """
+
+        if self.mined_data_df is not None:
+            return self.mined_data_df
+        else:
+            self._events_dataframe()
+            return self.mined_data_df
+
+    def save_events_as_csv(self,
+                           save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.csv') -> None:
         """
         Generate a CSV file with all the mined attributes
 
         Parameters
         ----------
-        save_location: str
+        save_path: str
             Save path as a string.
-        fname: str
+        file_name: str
             Filename to save as.
         """
 
-    def save_events_as_json(self):
+        save_location = save_path.joinpath(file_name)
+        data_df = self.get_events_as_dataframe()
+        data_df.to_csv(save_location)
+
+    def save_events_as_json(self,
+                            save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.json') -> None:
         """
         Generate a JSON file with all the mined attributes
+
+        Parameters
+        ----------
+        save_path: str
+            Save path as a string.
+        file_name: str
+            Filename to save as.
         """
 
+        save_location = save_path.joinpath(file_name)
+        data_df = self.get_events_as_dataframe()
+        data_df.to_json(save_location)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     crawler = Crawler()
     crawler._url2dictlist()
