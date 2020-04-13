@@ -186,7 +186,7 @@ class Crawler:
         bool:
             True if the current event is in the selected events 
         """
-        if data['type'] in self.event_set:
+        if json_data['type'] in self.event_set:
             return True
         else:
             return False
