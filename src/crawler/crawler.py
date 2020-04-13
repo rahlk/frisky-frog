@@ -3,6 +3,7 @@ import sys
 import json
 import gzip
 import certifi
+import logging
 import requests
 import pandas as pd
 from io import BytesIO
@@ -13,6 +14,8 @@ from collections import defaultdict
 from pathlib import Path, PosixPath
 from typing import Dict, Tuple, List, Union, NewType
 
+# Logging Config
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(
@@ -86,8 +89,8 @@ class Crawler:
         self.year = year
         self.hour = hour
         self.month = month
-        self.mined_data_df = None
         self.event_set = event_set
+        self.mined_data_df = defaultdict(lambda: None)
 
     def update_eventset(self, new_eventset: Iterable) -> None:
         """
@@ -224,16 +227,18 @@ class Crawler:
         https = PoolManager(cert_reqs='CERT_REQUIRED',
                             ca_certs=certifi.where())
         dict_list = []
-
-        response = https.request('GET', mined_url)
-        compressed_json = BytesIO(response.data)
-        with gzip.GzipFile(fileobj=compressed_json) as json_bytes:
-            json_str = json_bytes.read().decode('utf-8')
-            for json_value in json_str.split('\n'):
-                if self._is_valid_json(json_value):
-                    data = json.loads(json_value)
-                    if self.filter_by_event(data, self.event_set):
-                        dict_list.append(data)
+        try:
+            response = https.request('GET', mined_url)
+            compressed_json = BytesIO(response.data)
+            with gzip.GzipFile(fileobj=compressed_json) as json_bytes:
+                json_str = json_bytes.read().decode('utf-8')
+                for json_value in json_str.split('\n'):
+                    if self._is_valid_json(json_value):
+                        data = json.loads(json_value)
+                        if self.filter_by_event(data, self.event_set):
+                            dict_list.append(data)
+        except OSError:
+            pass
 
         return dict_list
 
@@ -242,23 +247,24 @@ class Crawler:
         Generate a DataFrame for all the mined attributes
         """
 
-        all_events = []
         for mined_url in self._daterange2url():
-            all_events.extend(self._url2dictlist(mined_url))
+            logging.info("\n[+] Processing {}\n".format(mined_url))
 
-        mined_data_dict = defaultdict(lambda: defaultdict(int))
+            key = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
+            all_events = self._url2dictlist(mined_url)
+            mined_data_dict = defaultdict(lambda: defaultdict(int))
 
-        for event in all_events:
-            event_type = event['type']
-            repo_name = event['repo']['name']
-            mined_data_dict[event_type][repo_name] += 1
+            for event in all_events:
+                event_type = event['type']
+                repo_name = event['repo']['name']
+                mined_data_dict[event_type][repo_name] += 1
 
-        mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
-        mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
-        mined_data_df.sort_values(
-            by='TotalEvents', ascending=False, inplace=True)
+            mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
+            mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
+            mined_data_df.sort_values(
+                by='TotalEvents', ascending=False, inplace=True)
 
-        self.mined_data_df = mined_data_df
+            self.mined_data_df[key] = mined_data_df
 
     def get_events_as_dataframe(self) -> PandasDataFrame:
         """
@@ -270,14 +276,13 @@ class Crawler:
             All mined data as a pandas DataFrame
         """
 
-        if self.mined_data_df is not None:
-            return self.mined_data_df
-        else:
-            self._events_dataframe()
+        if len(self.mined_data_df) > 0:
             return self.mined_data_df
 
-    def save_events_as_csv(self,
-                           save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.csv') -> None:
+        self._events_dataframe()
+        return self.mined_data_df
+
+    def save_events_as_csv(self, save_path: Path = root.parent.joinpath('data')) -> None:
         """
         Generate a CSV file with all the mined attributes
 
@@ -285,13 +290,12 @@ class Crawler:
         ----------
         save_path: str
             Save path as a string.
-        file_name: str
-            Filename to save as.
         """
 
-        save_location = save_path.joinpath(file_name)
-        data_df = self.get_events_as_dataframe()
-        data_df.to_csv(save_location)
+        for fname, data_df in self.get_events_as_dataframe():
+            logging.debug("[+] Processing file {}.csv".format(fname))
+            save_location = save_path.joinpath(fname + '.csv')
+            data_df.to_csv(save_location)
 
     def save_events_as_json(self,
                             save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.json') -> None:
@@ -302,13 +306,11 @@ class Crawler:
         ----------
         save_path: str
             Save path as a string.
-        file_name: str
-            Filename to save as.
         """
 
-        save_location = save_path.joinpath(file_name)
-        data_df = self.get_events_as_dataframe()
-        data_df.to_json(save_location)
+        for fname, data_df in self.get_events_as_dataframe():
+            save_location = save_path.joinpath(fname + '.json')
+            data_df.to_json(save_location)
 
 
 if __name__ == '__main__':
