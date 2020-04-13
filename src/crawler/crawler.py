@@ -173,15 +173,23 @@ class Crawler:
             yield "https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz".format(yy, mm, dd, hh)
 
     @staticmethod
-    def filter_by_event() -> bool:
+    def filter_by_event(json_data: dict) -> bool:
         """
         Filters an event based on a user provided set of events.
 
+        Parameters
+        ----------
+        json_data: dict
+            The JSON payload to verify.
         Returns
         -------
         bool:
             True if the current event is in the selected events 
         """
+        if data['type'] in self.event_set:
+            return True
+        else:
+            return False
 
     def _url2dictlist(self) -> List[Dict]:
         """
@@ -203,7 +211,9 @@ class Crawler:
                 for json_value in json_str.split("\n"):
                     if self._is_valid_json(json_value):
                         data = json.loads(json_value)
-                        dict_list.append(data)
+                        if self.filter_by_event(data):
+                            set_trace()
+                            dict_list.append(data)
 
         return dict_list
 
