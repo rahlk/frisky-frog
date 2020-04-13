@@ -18,7 +18,7 @@ from crawler import Crawler
 class TestCrawler(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCrawler, self).__init__(*args, **kwargs)
-        self.crawler = crawl = Crawler(
+        self.crawler = Crawler(
             hour=(0, 23), date=(27), month=(3), year=2020)
 
     def test_daterange2url(self):
