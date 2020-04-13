@@ -98,7 +98,7 @@ class Crawler:
 
         """
         assert isinstance(new_eventset, (set, list, tuple)
-                          ), 'The parameter new_eventset is not any of 'set', 'list', 'tuple'.'
+                          ), "The parameter new_eventset is not any of 'set', 'list', 'tuple'."
         self.event_set = set(new_eventset)
 
     @staticmethod
