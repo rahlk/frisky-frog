@@ -13,16 +13,17 @@ from collections import defaultdict
 from pathlib import Path, PosixPath
 from typing import Dict, Tuple, List, Union, NewType
 
+
+# Add project source to path
+root = Path(os.path.abspath(os.path.join(
+    os.getcwd().split('frisky-frog')[0], 'frisky-frog/src')))
+
 # Common types used here.
 URL = NewType('URL', str)
 DateRange = Tuple[int, int]
 Iterable = Union[set, list, tuple]
 PandasDataFrame = NewType('PandasDataFrame', pd.core.frame.DataFrame)
 Path = NewType('Path', PosixPath)
-
-# Add project source to path
-root = Path(os.path.abspath(os.path.join(
-    os.getcwd().split('frisky-frog')[0], 'frisky-frog/src')))
 
 
 class Crawler:
