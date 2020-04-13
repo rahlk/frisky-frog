@@ -1,17 +1,20 @@
-import requests
-import certifi
-from typing import Dict, Tuple, List, Union, NewType
-from itertools import product
-from pdb import set_trace
-from io import BytesIO
 import json
 import gzip
+import certifi
+import requests
+import pandas as pd
+from io import BytesIO
+from pdb import set_trace
+from itertools import product
 from urllib3 import PoolManager
+from collections import defaultdict
+from typing import Dict, Tuple, List, Union, NewType
 
 # Common types used here.
 URL = NewType("URL", str)
 DateRange = Tuple[int, int]
 Iterable = Union[set, list, tuple]
+PandasDataFrame = NewType("PandasDataFrame", pd.core.frame.DataFrame)
 
 
 class Crawler:
@@ -173,7 +176,7 @@ class Crawler:
             yield "https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz".format(yy, mm, dd, hh)
 
     @staticmethod
-    def filter_by_event(json_data: dict) -> bool:
+    def filter_by_event(json_data: dict, filter_set: set) -> bool:
         """
         Filters an event based on a user provided set of events.
 
@@ -181,19 +184,27 @@ class Crawler:
         ----------
         json_data: dict
             The JSON payload to verify.
+        filter_set: set
+            The set of filters to match against. 
+
         Returns
         -------
         bool:
             True if the current event is in the selected events 
         """
-        if json_data['type'] in self.event_set:
+        if json_data['type'] in filter_set:
             return True
         else:
             return False
 
-    def _url2dictlist(self) -> List[Dict]:
+    def _url2dictlist(self, mined_url: str) -> List[Dict]:
         """
         Generates a json file with all the metadata.
+
+        Parameters
+        ----------
+        mined_url: str
+            URL of the GH Archive json.gz file.  
 
         Returns
         -------
@@ -203,28 +214,56 @@ class Crawler:
         https = PoolManager(cert_reqs='CERT_REQUIRED',
                             ca_certs=certifi.where())
         dict_list = []
-        for mined_url in self._daterange2url():
-            response = https.request('GET', mined_url)
-            compressed_json = BytesIO(response.data)
-            with gzip.GzipFile(fileobj=compressed_json) as json_bytes:
-                json_str = json_bytes.read().decode('utf-8')
-                for json_value in json_str.split("\n"):
-                    if self._is_valid_json(json_value):
-                        data = json.loads(json_value)
-                        if self.filter_by_event(data):
-                            set_trace()
-                            dict_list.append(data)
+
+        response = https.request('GET', mined_url)
+        compressed_json = BytesIO(response.data)
+        with gzip.GzipFile(fileobj=compressed_json) as json_bytes:
+            json_str = json_bytes.read().decode('utf-8')
+            for json_value in json_str.split("\n"):
+                if self._is_valid_json(json_value):
+                    data = json.loads(json_value)
+                    if self.filter_by_event(data, self.event_set):
+                        dict_list.append(data)
 
         return dict_list
 
-    def get_events_as_dataframe(self):
+    def get_events_as_dataframe(self) -> PandasDataFrame:
         """
         Generate a DataFrame for all the mined attributes
+
+        Returns
+        -------
+        DataFrame: 
+            All mined data as a pandas DataFrame
         """
 
-    def save_events_as_csv(self):
+        all_events = []
+        for mined_url in self._daterange2url():
+            all_events.extend(self._url2dictlist(mined_url))
+
+        mined_data_dict = defaultdict(lambda: defaultdict(int))
+
+        for event in all_events:
+            event_type = event["type"]
+            repo_name = event["repo"]["name"]
+            mined_data_dict[event_type][repo_name] += 1
+
+        mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
+        mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
+        mined_data_df.sort_values(
+            by="TotalEvents", ascending=False, inplace=True)
+        set_trace()
+
+    def save_events_as_csv(self, save_location, fname) -> None:
         """
         Generate a CSV file with all the mined attributes
+
+        Parameters
+        ----------
+        save_location: str
+            Save path as a string.
+        fname: str
+            Filename to save as.
         """
 
     def save_events_as_json(self):
