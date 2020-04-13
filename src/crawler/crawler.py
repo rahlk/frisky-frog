@@ -8,8 +8,10 @@ import json
 import gzip
 from urllib3 import PoolManager
 
-DateRange = Tuple[int, int]
+# Common types used here.
 URL = NewType("URL", str)
+DateRange = Tuple[int, int]
+Iterable = Union[set, list, tuple]
 
 
 class Crawler:
@@ -28,6 +30,8 @@ class Crawler:
         Monthly data as a tuple of start and end values.
     year: Tuple(Int, Int) (default=(2019, 2020))
         Yearly data as a tuple of start and end values.
+    event_set: set
+        A set of events to filter repositories by.
 
     Notes
     -----    
@@ -36,20 +40,57 @@ class Crawler:
 
     + For ranges provide a tuple of start and end values
     E.g., for first half of 2019 provide: hour=(0, 23), date=(1, 31), month=(1, 6), year=2019.
+
+    + Events of interest:
+        - Push
+        - Forks
+        - Stars
+        - Label
+        - Issues
+        - Status
+        - Issue Comment
+        - Commit Comment
+        - Pull Request Event
     """
 
     def __init__(self, hour: Union[DateRange, int] = (0, 23),
                  date: Union[DateRange, int] = (1, 31),
                  month: Union[DateRange, int] = (1, 12),
-                 year: Union[DateRange, int] = (2019, 2020)):
+                 year: Union[DateRange, int] = (2019, 2020),
+                 event_set: set = {
+                     "PushEvent",
+                     "ForkEvent",
+                     "StarEvent",
+                     "LabelEvent",
+                     "IssuesEvent",
+                     "StatusEvent",
+                     "PullRequestEvent",
+                     "IssuesCommentEvent",
+                     "CommitCommentEvent",
+                     "PullRequestReviewEvent",
+                     "PullRequestReviewCommentEvent"}):
 
         self.date = date
         self.year = year
         self.hour = hour
         self.month = month
+        self.event_set = event_set
+
+    def update_eventset(self, new_eventset: Iterable) -> None:
+        """
+        A setter method used to update the eventset.
+
+        Parameters
+        ----------
+        new_eventset: Iterable (i.e, set, list, tuple)
+
+        """
+        assert isinstance(new_eventset, (set, list, tuple)
+                          ), "The parameter new_eventset is not any of 'set', 'list', 'tuple'."
+        self.event_set = set(new_eventset)
 
     @staticmethod
-    def _inclusive_range(start, end):
+    def _inclusive_range(start: int, end: int) -> List:
         """
         An inclusive range method.
 
@@ -106,7 +147,7 @@ class Crawler:
             Download URL for the GH Archive data
         """
 
-        # If no range is provided, convert to a single element tuple. It's just
+        # If no range is provided, convert to a 2 element tuple. It's just
         # much easier to generate a string this way.
         if not isinstance(self.hour, tuple):
             self.hour = self.hour, self.hour
@@ -125,12 +166,22 @@ class Crawler:
         date = self._inclusive_range(*self.date)
         month = self._inclusive_range(*self.month)
 
-        # Generate a cartesian product of all the possible date-time
-        # combinations
+        # Generate a cartesian product of all the date-time combinations
         all_timestamps = tuple(product(year, month, date, hour))
 
         for yy, mm, dd, hh in all_timestamps:
             yield "https://data.gharchive.org/{:02d}-{:02d}-{:02d}-{}.json.gz".format(yy, mm, dd, hh)
+
+    @staticmethod
+    def filter_by_event() -> bool:
+        """
+        Filters an event based on a user provided set of events.
+
+        Returns
+        -------
+        bool:
+            True if the current event is in the selected events 
+        """
 
     def _url2dictlist(self) -> List[Dict]:
         """
@@ -153,6 +204,8 @@ class Crawler:
                     if self._is_valid_json(json_value):
                         data = json.loads(json_value)
                         dict_list.append(data)
+
+        # set_trace()
 
         return dict_list
 
