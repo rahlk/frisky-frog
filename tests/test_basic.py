@@ -18,14 +18,14 @@ from crawler import Crawler
 class TestCrawler(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCrawler, self).__init__(*args, **kwargs)
-        self.crawler = Crawler(
-            hour=(0, 23), date=(27), month=(3), year=2020)
+        self.crawl = Crawler(
+            hour=(0, 23), date=(1, 31), month=(3), year=2020)
 
     def test_daterange2url(self):
         count = 0
         for url in self.crawl._daterange2url():
             count += 1
-        self.assertEqual(count, 12)
+        self.assertEqual(count, 24)
 
     def test_save_events_as_json(self):
         dataframe = self.crawl.save_events_as_json()
@@ -35,4 +35,3 @@ class TestCrawler(unittest.TestCase):
 
     def test_get_events_as_dataframe(self):
         dataframe = self.crawl.get_events_as_dataframe()
-        set_trace()
