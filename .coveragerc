@@ -1,6 +1,7 @@
 [run]
 source=frisky-frog/src
 omit =
+    */venv/*
     */python?.?/*
     */lib-python/?.?/*.py
     */lib_pypy/_*.py

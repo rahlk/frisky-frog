@@ -205,8 +205,6 @@ class Crawler:
                         data = json.loads(json_value)
                         dict_list.append(data)
 
-        # set_trace()
-
         return dict_list
 
     def get_events_as_dataframe(self):
