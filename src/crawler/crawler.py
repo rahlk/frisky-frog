@@ -60,7 +60,7 @@ class Crawler:
             A set of events to filter repositories by.
 
         Notes
-        -----    
+        -----
         + For specific values use Discrete numbers.
         E.g., for April, 20th 2019, 4:00 PM provide: hour=16, date=20, month=4, year=2019.
 
@@ -134,9 +134,9 @@ class Crawler:
             A possibly invalid JSON string
 
         Returns
-        ------- 
-        bool: 
-            True is the provided string is a valid json. False otherwise. 
+        -------
+        bool:
+            True is the provided string is a valid json. False otherwise.
         """
         try:
             json.loads(possible_json_string)
@@ -148,7 +148,7 @@ class Crawler:
         """
         Converts user provided date range into a GH Archive URL.
 
-        GH Archive uses a specific string format to encode the data url. This method formats user provided date-range into a URL that can be queried. 
+        GH Archive uses a specific string format to encode the data url. This method formats user provided date-range into a URL that can be queried.
 
         Yields
         ------
@@ -191,12 +191,12 @@ class Crawler:
         json_data: dict
             The JSON payload to verify.
         filter_set: set
-            The set of filters to match against. 
+            The set of filters to match against.
 
         Returns
         -------
         bool:
-            True if the current event is in the selected events 
+            True if the current event is in the selected events
         """
         if json_data['type'] in filter_set:
             return True
@@ -210,7 +210,7 @@ class Crawler:
         Parameters
         ----------
         mined_url: str
-            URL of the GH Archive json.gz file.  
+            URL of the GH Archive json.gz file.
 
         Returns
         -------
@@ -265,7 +265,7 @@ class Crawler:
 
         Returns
         -------
-        DataFrame: 
+        DataFrame:
             All mined data as a pandas DataFrame
         """
 
@@ -275,7 +275,8 @@ class Crawler:
         self._events_dataframe()
         return self.mined_data_df
 
-    def save_events_as_csv(self, save_path: Path = root.joinpath('data')) -> None:
+    def save_events_as_csv(self,
+                           save_path: Path = root.joinpath('data')) -> None:
         """
         Generate a CSV file with all the mined attributes
 
@@ -291,7 +292,7 @@ class Crawler:
             data_df.to_csv(save_location)
 
     def save_events_as_json(self,
-                            save_path: Path = root.joinpath('data'), file_name: str = 'jan2020.json') -> None:
+                            save_path: Path = root.joinpath('data')) -> None:
         """
         Generate a JSON file with all the mined attributes
 
@@ -301,7 +302,8 @@ class Crawler:
             Save path as a string.
         """
 
-        for fname, data_df in self.get_events_as_dataframe():
+        for fname, data_df in self.get_events_as_dataframe().items():
+            logging.debug("[+] Processing file {}.json".format(fname))
             save_location = save_path.joinpath(fname + '.json')
             data_df.to_json(save_location)
 
