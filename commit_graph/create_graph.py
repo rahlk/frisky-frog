@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 from datetime import timedelta
-
+import numpy as np
 from commit_graph.gather_commit import debug
 
 
@@ -54,10 +54,16 @@ def divide_into_interaction_chunks(all_commits, window_size=7, stride=1):
     return day_chunks
 
 
+def author_activity(authors, commits):
+    activities = np.zeros(len(authors), dtype='int')
+    for c in commits:
+        activities[c['author_id']] += 1
+    return activities.tolist()
+
+
 def create_author_interaction_graph(authors, commits):
-    _author_interaction_graph = dict()
-    for a in authors:
-        _author_interaction_graph[a['id']] = set()
+    _author_interaction_graph = np.zeros(shape=(len(authors), len(authors)), dtype='int')
+    assert np.sum(_author_interaction_graph) == 0
     modified_files = dict()
     for c in commits:
         for f in c['files']:
@@ -65,23 +71,21 @@ def create_author_interaction_graph(authors, commits):
                 modified_files[f] = set()
             modified_files[f].add(c['author_id'])
     for f in modified_files:
-        interacted_authors = modified_files[f]
-        for a1 in interacted_authors:
-            for a2 in interacted_authors:
-                if a1 != a2:
-                    _author_interaction_graph[a1].add(a2)
-                    _author_interaction_graph[a2].add(a1)
-    for a in _author_interaction_graph:
-        _author_interaction_graph[a] = list(_author_interaction_graph[a])
+        interacted_authors = set(modified_files[f])
+        if len(interacted_authors) > 1:
+            for a1 in interacted_authors:
+                for a2 in interacted_authors:
+                    if a1 != a2:
+                        _author_interaction_graph[a1, a2] += 1
     return _author_interaction_graph
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', help='Data Directory', type=str, required=True)
+    parser.add_argument('--data', help='Data Directory', type=str, default='commit_data/nodejs_i18n')
     parser.add_argument('--sliding_window_size',
                         help='Number of days to consider interaction', type=int,
-                        default=7)
+                        default=1)
     parser.add_argument('--overlap_windows',
                         help='Overlap the windows', action='store_true')
     parser.add_argument('--stride',
@@ -103,11 +107,17 @@ if __name__ == '__main__':
         {
             'first_day': str(chunk['first_day']),
             'last_day': str(chunk['last_day']),
-            'code_author_interaction': create_author_interaction_graph(
+            'interaction': create_author_interaction_graph(
                 authors, chunk['commits']
-            )
+            ).tolist(),
+            'author_activities': author_activity(authors, chunk['commits'])
         } for chunk in interaction_chunks
     ]
+    for g in all_interaction_graphs:
+        graph = g['interaction']
+        if np.sum(graph) > 0:
+            print(g)
+            print('*' * 200)
     exp_name = args.name
     if exp_name is None:
         exp_name = args.data.split('/')[-1].strip() \
@@ -115,13 +125,7 @@ if __name__ == '__main__':
     save_file_dir = args.save
     if not os.path.exists(save_file_dir):
         os.mkdir(save_file_dir)
-    save_file_dir = os.path.join(save_file_dir, exp_name)
-    if not os.path.exists(save_file_dir):
-        os.mkdir(save_file_dir)
-    file_name = ('code_author_inter-(window_size-' + str(args.sliding_window_size) + ')')
-    file_name += '-'
-    file_name += 'overlap' if args.overlap_windows else 'no_overlap'
-    save_file = open(os.path.join(save_file_dir, file_name + '.json'), 'w')
+    save_file = open(os.path.join(save_file_dir, exp_name + '.json'), 'w')
     json.dump(all_interaction_graphs, save_file)
     save_file.close()
     pass

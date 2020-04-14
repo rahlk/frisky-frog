@@ -6,13 +6,28 @@ import json
 import shutil
 
 
+def format_(m):
+    if isinstance(m, list):
+        return '['+ ', '.join([format_(l) for l in m]) + ' ]'
+    elif isinstance(m, set):
+        return '{' + ', '.join([format_(l) for l in m]) + ' }'
+    elif isinstance(m, dict):
+        fmt = '{\n'
+        for k in m.keys():
+            fmt += ('  ' + format_(k) + ': ' + format_(m[k]) + '\n')
+        fmt += '}\n'
+        return fmt
+    else:
+        return str(m)
+
+
 def debug(*messages):
     import inspect
     caller = inspect.stack()[1]
     fpath = caller.filename
     ln = caller.lineno
     location = "File \"%s\", line %d " % (fpath, ln) + '\t'
-    message = ' '.join([str(m) for m in messages])
+    message = ' '.join([format_(m) for m in messages])
     t = time.strftime('%y-%m-%d %H:%M:%S')
     print(location + t + '\t' + message)
 
@@ -129,15 +144,15 @@ if __name__ == '__main__':
     parser.add_argument('--repo', help='Name of the Repository', required=True, type=str)
     parser.add_argument(
         '--time_back', help='History budget backwards in time (in month)', type=int, default=12)
-    parser.add_argument('--delete_repo', help='Delete repository after use', action='store_true')
-    parser.add_argument('--include_merge', help='Include Merge Changes', action='store_true')
+    parser.add_argument('--do_not_delete_repo', help='Delete repository after use', action='store_true')
+    parser.add_argument('--exclude_merge', help='Include Merge Changes', action='store_true')
     parser.add_argument('--max_commits', help='Number of max commits', type=int, default=1000000)
     args = parser.parse_args()
     download_commit_summaries(
         repo_owner_name=args.owner,
         repo_name=args.repo,
         time_budget=args.time_back,
-        include_merge_commit=args.include_merge,
-        delete_repo_after_finish=args.delete_repo,
+        include_merge_commit=not args.exclude_merge,
+        delete_repo_after_finish=not args.do_not_delete_repo,
         max_commits=args.max_commits
     )
