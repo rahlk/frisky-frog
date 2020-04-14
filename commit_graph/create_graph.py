@@ -4,7 +4,6 @@ import os
 from datetime import datetime
 from datetime import timedelta
 import numpy as np
-from commit_graph.gather_commit import debug
 
 
 def sort_commits(all_commits):
@@ -32,7 +31,7 @@ def divide_commits_into_days(all_commits):
     return day_to_commit
 
 
-def divide_into_interaction_chunks(all_commits, window_size=7, stride=1):
+def divide_into_interaction_chunks(all_commits, window_size=1, stride=1, ignore_empty_days=True):
     daily_commits = divide_commits_into_days(all_commits)
     days = sorted(list(daily_commits.keys()))
     first_day = days[0]
@@ -44,13 +43,14 @@ def divide_into_interaction_chunks(all_commits, window_size=7, stride=1):
         for day in daily_commits.keys():
             if first_day <= day <= next_day:
                 commits_in_this_chunk.extend(daily_commits[day])
-        window_chunk = {
-            'first_day': first_day,
-            'last_day': next_day,
-            'commits': commits_in_this_chunk
-        }
+        if not ignore_empty_days or len(commits_in_this_chunk) > 0:
+            window_chunk = {
+                'first_day': first_day,
+                'last_day': next_day,
+                'commits': commits_in_this_chunk
+            }
+            day_chunks.append(window_chunk)
         first_day = first_day + timedelta(days=stride-1)
-        day_chunks.append(window_chunk)
     return day_chunks
 
 
@@ -79,6 +79,32 @@ def create_author_interaction_graph(authors, commits):
                         _author_interaction_graph[a1, a2] += 1
     return _author_interaction_graph
 
+## Call this function with appropriate parameters extracted from gather commit file.
+def create_graph(_commits, _authors, save=True, exp_name=None, save_file_dir=None, sliding_window_size=1):
+    interaction_chunks = divide_into_interaction_chunks(
+        all_commits=_commits,
+        window_size=sliding_window_size,
+        stride=2)
+    all_interaction_graphs = [
+        {
+            'first_day': str(chunk['first_day']),
+            'last_day': str(chunk['last_day']),
+            'interaction': create_author_interaction_graph(
+                _authors, chunk['commits']
+            ).tolist(),
+            'author_activities': author_activity(_authors, chunk['commits'])
+        } for chunk in interaction_chunks
+    ]
+    if save:
+        assert save_file_dir is not None, 'Save Directory must be provided to save results'
+        assert exp_name is not None, 'Experiment name must be provided to save the results'
+        if not os.path.exists(save_file_dir):
+            os.mkdir(save_file_dir)
+        save_file = open(os.path.join(save_file_dir, exp_name + '.json'), 'w')
+        json.dump(all_interaction_graphs, save_file)
+        save_file.close()
+    return all_interaction_graphs
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -99,33 +125,9 @@ if __name__ == '__main__':
     authors, files, commits = read_data(args.data)
     stride = args.stride
     stride += args.sliding_window_size if not args.overlap_windows else 0
-    interaction_chunks = divide_into_interaction_chunks(
-        all_commits=commits,
-        window_size=args.sliding_window_size,
-        stride=stride)
-    all_interaction_graphs = [
-        {
-            'first_day': str(chunk['first_day']),
-            'last_day': str(chunk['last_day']),
-            'interaction': create_author_interaction_graph(
-                authors, chunk['commits']
-            ).tolist(),
-            'author_activities': author_activity(authors, chunk['commits'])
-        } for chunk in interaction_chunks
-    ]
-    for g in all_interaction_graphs:
-        graph = g['interaction']
-        if np.sum(graph) > 0:
-            print(g)
-            print('*' * 200)
-    exp_name = args.name
-    if exp_name is None:
-        exp_name = args.data.split('/')[-1].strip() \
+    exp_name = args.data.split('/')[-1].strip() \
             if '/' in args.data else args.data.strip()
     save_file_dir = args.save
-    if not os.path.exists(save_file_dir):
-        os.mkdir(save_file_dir)
-    save_file = open(os.path.join(save_file_dir, exp_name + '.json'), 'w')
-    json.dump(all_interaction_graphs, save_file)
-    save_file.close()
+    graphs = create_graph(commits, authors, save=True, save_file_dir=save_file_dir, exp_name=exp_name)
+    print(len(graphs))
     pass

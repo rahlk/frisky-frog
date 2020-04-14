@@ -8,7 +8,7 @@ import shutil
 
 def format_(m):
     if isinstance(m, list):
-        return '['+ ', '.join([format_(l) for l in m]) + ' ]'
+        return '[' + ', '.join([format_(l) for l in m]) + ' ]'
     elif isinstance(m, set):
         return '{' + ', '.join([format_(l) for l in m]) + ' }'
     elif isinstance(m, dict):
@@ -135,6 +135,7 @@ def download_commit_summaries(
         shutil.rmtree(repository_path)
     debug('Total authors: %d\tTotal Unique files: %d\tTotal commits: %d' \
           % (len(all_authors), len(all_files), len(all_commit_summaries)))
+    return all_commit_summaries, all_authors, all_files
 
 
 if __name__ == '__main__':
@@ -143,7 +144,7 @@ if __name__ == '__main__':
     parser.add_argument('--owner', help='Repository owner username', required=True, type=str)
     parser.add_argument('--repo', help='Name of the Repository', required=True, type=str)
     parser.add_argument(
-        '--time_back', help='History budget backwards in time (in month)', type=int, default=12)
+        '--time_back', help='History budget backwards in time (in month)', type=int, default=14)
     parser.add_argument('--do_not_delete_repo', help='Delete repository after use', action='store_true')
     parser.add_argument('--exclude_merge', help='Include Merge Changes', action='store_true')
     parser.add_argument('--max_commits', help='Number of max commits', type=int, default=1000000)
@@ -152,7 +153,7 @@ if __name__ == '__main__':
         repo_owner_name=args.owner,
         repo_name=args.repo,
         time_budget=args.time_back,
-        include_merge_commit=not args.exclude_merge,
+        include_merge_commit=False,#not args.exclude_merge,
         delete_repo_after_finish=not args.do_not_delete_repo,
         max_commits=args.max_commits
     )
