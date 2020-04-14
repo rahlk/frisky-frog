@@ -15,11 +15,14 @@ from pathlib import Path, PosixPath
 from typing import Dict, Tuple, List, Union, NewType
 
 # Logging Config
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='[+] %(message)s', level=logging.INFO)
 
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(
-    os.getcwd().split('frisky-frog')[0], 'frisky-frog/src')))
+    os.getcwd().split('frisky-frog')[0], 'frisky-frog')))
+
+if root.joinpath('src') not in sys.path:
+    sys.path.append(str(root.joinpath('src')))
 
 # Common types used here.
 URL = NewType('URL', str)
@@ -248,7 +251,7 @@ class Crawler:
         """
 
         for mined_url in self._daterange2url():
-            logging.info("\n[+] Processing {}\n".format(mined_url))
+            logging.info("Processing {}".format(mined_url))
 
             key = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
             all_events = self._url2dictlist(mined_url)
@@ -282,7 +285,7 @@ class Crawler:
         self._events_dataframe()
         return self.mined_data_df
 
-    def save_events_as_csv(self, save_path: Path = root.parent.joinpath('data')) -> None:
+    def save_events_as_csv(self, save_path: Path = root.joinpath('data')) -> None:
         """
         Generate a CSV file with all the mined attributes
 
@@ -292,13 +295,13 @@ class Crawler:
             Save path as a string.
         """
 
-        for fname, data_df in self.get_events_as_dataframe():
+        for fname, data_df in self.get_events_as_dataframe().items():
             logging.debug("[+] Processing file {}.csv".format(fname))
             save_location = save_path.joinpath(fname + '.csv')
             data_df.to_csv(save_location)
 
     def save_events_as_json(self,
-                            save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.json') -> None:
+                            save_path: Path = root.joinpath('data'), file_name: str = 'jan2020.json') -> None:
         """
         Generate a JSON file with all the mined attributes
 

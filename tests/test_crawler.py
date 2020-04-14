@@ -7,10 +7,10 @@ from pdb import set_trace
 
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(
-    os.getcwd().split("frisky-frog")[0], 'frisky-frog/src')))
+    os.getcwd().split("frisky-frog")[0], 'frisky-frog')))
 
-if root not in sys.path:
-    sys.path.append(str(root))
+if root.joinpath('src') not in sys.path:
+    sys.path.append(str(root.joinpath('src')))
 
 from crawler import Crawler
 
