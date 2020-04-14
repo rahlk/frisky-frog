@@ -33,61 +33,51 @@ Path = NewType('Path', PosixPath)
 
 
 class Crawler:
-    """
-    A crawler for GH Archive (https://www.gharchive.org/).
-
-    Query GH Archive and covert data in to a format that can be processed with pandas, csv, etc.
-
-    Parameters
-    ----------
-    hour: Tuple(Int, Int) (default=(0, 23))
-        Hourly data as a tuple of start and end values.
-    date: Tuple(Int, Int) (default=(1, 31))
-        Daily data as a tuple of start and end values.
-    month: Tuple(Int, Int) (default=(1, 12))
-        Monthly data as a tuple of start and end values.
-    year: Tuple(Int, Int) (default=(2019, 2020))
-        Yearly data as a tuple of start and end values.
-    event_set: set
-        A set of events to filter repositories by.
-
-    Notes
-    -----    
-    + For specific values use Discrete numbers.
-    E.g., for April, 20th 2019, 4:00 PM provide: hour=16, date=20, month=4, year=2019.
-
-    + For ranges provide a tuple of start and end values
-    E.g., for first half of 2019 provide: hour=(0, 23), date=(1, 31), month=(1, 6), year=2019.
-
-    + Events of interest:
-        - Push
-        - Forks
-        - Stars
-        - Label
-        - Issues
-        - Status
-        - Issue Comment
-        - Commit Comment
-        - Pull Request Event
-    """
-
     def __init__(self, hour: Union[DateRange, int] = (0, 23),
                  date: Union[DateRange, int] = (1, 31),
                  month: Union[DateRange, int] = (1, 12),
                  year: Union[DateRange, int] = (2019, 2020),
-                 event_set: set = {
-                     'PushEvent',
-                     'ForkEvent',
-                     'StarEvent',
-                     'LabelEvent',
-                     'IssuesEvent',
-                     'StatusEvent',
-                     'PullRequestEvent',
-                     'IssuesCommentEvent',
-                     'CommitCommentEvent',
-                     'PullRequestReviewEvent',
-                     'PullRequestReviewCommentEvent'}):
+                 event_set: set = {'PushEvent', 'ForkEvent', 'StarEvent',
+                                   'LabelEvent', 'IssuesEvent', 'StatusEvent',
+                                   'PullRequestEvent', 'IssuesCommentEvent',
+                                   'CommitCommentEvent', 'PullRequestReviewEvent', 'PullRequestReviewCommentEvent'}):
+        """
+        A crawler for GH Archive (https://www.gharchive.org/).
 
+        Query GH Archive and covert data in to a format that can be processed with pandas, csv, etc.
+
+        Parameters
+        ----------
+        hour: Tuple(Int, Int) (default=(0, 23))
+            Hourly data as a tuple of start and end values.
+        date: Tuple(Int, Int) (default=(1, 31))
+            Daily data as a tuple of start and end values.
+        month: Tuple(Int, Int) (default=(1, 12))
+            Monthly data as a tuple of start and end values.
+        year: Tuple(Int, Int) (default=(2019, 2020))
+            Yearly data as a tuple of start and end values.
+        event_set: set
+            A set of events to filter repositories by.
+
+        Notes
+        -----    
+        + For specific values use Discrete numbers.
+        E.g., for April, 20th 2019, 4:00 PM provide: hour=16, date=20, month=4, year=2019.
+
+        + For ranges provide a tuple of start and end values
+        E.g., for first half of 2019 provide: hour=(0, 23), date=(1, 31), month=(1, 6), year=2019.
+
+        + Events of interest:
+            - Push
+            - Forks
+            - Stars
+            - Label
+            - Issues
+            - Status
+            - Issue Comment
+            - Commit Comment
+            - Pull Request Event
+        """
         self.date = date
         self.year = year
         self.hour = hour

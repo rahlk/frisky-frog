@@ -18,20 +18,23 @@ from crawler import Crawler
 class TestCrawler(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCrawler, self).__init__(*args, **kwargs)
+        self.save_path = Path(os.path.abspath(os.getcwd()))
         self.crawl = Crawler(
-            hour=(0, 23), date=(1, 31), month=(3), year=2020)
+            hour=(16), date=(13), month=(3), year=2020)
 
     def test_daterange2url(self):
         count = 0
         for url in self.crawl._daterange2url():
             count += 1
-        self.assertEqual(count, 24)
+        self.assertEqual(count, 6)
 
     def test_save_events_as_json(self):
-        dataframe = self.crawl.save_events_as_json()
+        dataframe = self.crawl.save_events_as_json(
+            save_path=self.save_path, file_name='test.json')
 
     def test_save_events_as_csv(self):
-        dataframe = self.crawl.save_events_as_csv()
+        dataframe = self.crawl.save_events_as_csv(
+            save_path=self.save_path, file_name='test.csv')
 
     def test_get_events_as_dataframe(self):
         dataframe = self.crawl.get_events_as_dataframe()
