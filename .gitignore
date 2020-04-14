@@ -11,6 +11,7 @@ __pycache__/
 commit_graph/code_author_interaction_graphs/
 commit_graph/commit_data/
 commit_graph/tmp_repo/
+tmp_repo/
 *.json
 .idea/
 commit_graph/tmp_repo/
