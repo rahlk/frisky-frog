@@ -75,7 +75,7 @@ class Agglomerate:
     def agglomerate_all(self,
                         also_save: bool = False,
                         save_path: PathType = root.joinpath('data'),
-                        file_extn: str = 'csv') -> Dict[PandasDataFrame]:
+                        file_extn: str = 'csv') -> Dict[str, PandasDataFrame]:
         """
         Agglomerates hourly to all other ranges.  
 
@@ -93,3 +93,8 @@ class Agglomerate:
         Dict[PandasDataFrame]
             A dictionary of dataframes.
         """
+
+
+if __name__ == "__main__":
+    agg = Agglomerate()
+    daily = agg.hourly2daily()
