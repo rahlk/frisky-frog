@@ -8,3 +8,4 @@ matplotlib
 virtualenv
 python-coveralls
 google-cloud-bigquery
+git
