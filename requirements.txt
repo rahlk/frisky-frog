@@ -3,7 +3,9 @@ glob2
 scipy
 pandas
 PTable
-sklearn
+scikit-learn
 matplotlib
 virtualenv
 python-coveralls
+google-cloud-bigquery
+gitpython
