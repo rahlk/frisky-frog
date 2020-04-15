@@ -1,5 +1,9 @@
 from commit_graph.create_graph import create_graph
 from commit_graph.gather_commit import download_commit_summaries, debug
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.abspath(os.path.join(os.path.abspath(__file__), os.pardir))))
 
 
 def generate_graphs(owner, repo_name, time_back=14):
@@ -19,7 +23,7 @@ def generate_graphs(owner, repo_name, time_back=14):
 
 
 if __name__ == '__main__':
-    owner_name = 'nodejs'
-    repo = 'i18n'
+    owner_name = sys.argv[1]
+    repo = sys.argv[2]
     graphs = generate_graphs(owner_name, repo)
     debug(len(graphs))

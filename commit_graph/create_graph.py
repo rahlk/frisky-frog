@@ -84,7 +84,8 @@ def create_graph(_commits, _authors, save=True, exp_name=None, save_file_dir=Non
     interaction_chunks = divide_into_interaction_chunks(
         all_commits=_commits,
         window_size=sliding_window_size,
-        stride=2)
+        stride=2
+    )
     all_interaction_graphs = [
         {
             'first_day': str(chunk['first_day']),
