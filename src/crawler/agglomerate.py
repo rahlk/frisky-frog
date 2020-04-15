@@ -38,6 +38,38 @@ class Agglomerate:
         """
         self.data_path = data_path
 
+    @staticmethod
+    def _datetime_to_key(timestamp: str, granularity: str) -> str:
+        """
+        Converts a given datetime object into a string key.
+
+        The string key is inturn used to construct dicttionaries of data. 
+
+        Parameters
+        ----------
+        timestamp: str
+            The timestamp object.
+        granularity: str
+            The datetime granularity to reprsent. 
+
+        Returns
+        -------
+        str:
+            The dictionary key.
+        """
+        assert granularity.lower() in {
+            'daily', 'weekly', 'monthly'}, "Chosen granularity not 'daily', 'weekly', or 'montly'. Please choose from among these."
+
+        if granularity.lower() == "daily":
+            set_trace()
+            pass
+
+        if granularity.lower() == "weekly":
+            pass
+
+        if granularity.lower() == "monthly":
+            pass
+
     def hourly2daily(self) -> PandasDataFrame:
         """
         Agglomerates hourly to daily.
@@ -47,9 +79,13 @@ class Agglomerate:
         PandasDataFrame
             Daily events count.
         """
+        daily_dict = defaultdict(list)
+
         for hourly_data in self.data_path.joinpath('hourly').glob('*.csv'):
             dframe = pd.read_csv(hourly_data)
             fname = hourly_data.stem
+            datetime_obj = datetime.strptime(fname, "%Y-%m-%d-%H")
+
             set_trace()
 
     def hourly2weekly(self) -> PandasDataFrame:

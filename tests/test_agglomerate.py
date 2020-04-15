@@ -18,3 +18,14 @@ from crawler import Agglomerate
 class TestAgglomerate(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCrawler, self).__init__(*args, **kwargs)
+        self.test_agg = Agglomerate()
+
+    def test_hourly2daily(self):
+        "Test hourly data to daily data commits."
+        self.test_agg.hourly2daily()
+
+    def test_hourly2weekly(self):
+        "Test hourly data to weekly data commits."
+
+    def test_hourly2monthly(self):
+        "Test hourly data to monthly data commits."
