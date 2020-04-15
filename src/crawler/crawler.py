@@ -15,11 +15,14 @@ from pathlib import Path, PosixPath
 from typing import Dict, Tuple, List, Union, NewType
 
 # Logging Config
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='[+] %(message)s', level=logging.INFO)
 
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(
-    os.getcwd().split('frisky-frog')[0], 'frisky-frog/src')))
+    os.getcwd().split('frisky-frog')[0], 'frisky-frog')))
+
+if root.joinpath('src') not in sys.path:
+    sys.path.append(str(root.joinpath('src')))
 
 # Common types used here.
 URL = NewType('URL', str)
@@ -30,61 +33,51 @@ Path = NewType('Path', PosixPath)
 
 
 class Crawler:
-    """
-    A crawler for GH Archive (https://www.gharchive.org/).
-
-    Query GH Archive and covert data in to a format that can be processed with pandas, csv, etc.
-
-    Parameters
-    ----------
-    hour: Tuple(Int, Int) (default=(0, 23))
-        Hourly data as a tuple of start and end values.
-    date: Tuple(Int, Int) (default=(1, 31))
-        Daily data as a tuple of start and end values.
-    month: Tuple(Int, Int) (default=(1, 12))
-        Monthly data as a tuple of start and end values.
-    year: Tuple(Int, Int) (default=(2019, 2020))
-        Yearly data as a tuple of start and end values.
-    event_set: set
-        A set of events to filter repositories by.
-
-    Notes
-    -----    
-    + For specific values use Discrete numbers.
-    E.g., for April, 20th 2019, 4:00 PM provide: hour=16, date=20, month=4, year=2019.
-
-    + For ranges provide a tuple of start and end values
-    E.g., for first half of 2019 provide: hour=(0, 23), date=(1, 31), month=(1, 6), year=2019.
-
-    + Events of interest:
-        - Push
-        - Forks
-        - Stars
-        - Label
-        - Issues
-        - Status
-        - Issue Comment
-        - Commit Comment
-        - Pull Request Event
-    """
-
     def __init__(self, hour: Union[DateRange, int] = (0, 23),
                  date: Union[DateRange, int] = (1, 31),
                  month: Union[DateRange, int] = (1, 12),
                  year: Union[DateRange, int] = (2019, 2020),
-                 event_set: set = {
-                     'PushEvent',
-                     'ForkEvent',
-                     'StarEvent',
-                     'LabelEvent',
-                     'IssuesEvent',
-                     'StatusEvent',
-                     'PullRequestEvent',
-                     'IssuesCommentEvent',
-                     'CommitCommentEvent',
-                     'PullRequestReviewEvent',
-                     'PullRequestReviewCommentEvent'}):
+                 event_set: set = {'PushEvent', 'ForkEvent', 'StarEvent',
+                                   'LabelEvent', 'IssuesEvent', 'StatusEvent',
+                                   'PullRequestEvent', 'IssuesCommentEvent',
+                                   'CommitCommentEvent', 'PullRequestReviewEvent', 'PullRequestReviewCommentEvent'}):
+        """
+        A crawler for GH Archive (https://www.gharchive.org/).
 
+        Query GH Archive and covert data in to a format that can be processed with pandas, csv, etc.
+
+        Parameters
+        ----------
+        hour: Tuple(Int, Int) (default=(0, 23))
+            Hourly data as a tuple of start and end values.
+        date: Tuple(Int, Int) (default=(1, 31))
+            Daily data as a tuple of start and end values.
+        month: Tuple(Int, Int) (default=(1, 12))
+            Monthly data as a tuple of start and end values.
+        year: Tuple(Int, Int) (default=(2019, 2020))
+            Yearly data as a tuple of start and end values.
+        event_set: set
+            A set of events to filter repositories by.
+
+        Notes
+        -----
+        + For specific values use Discrete numbers.
+        E.g., for April, 20th 2019, 4:00 PM provide: hour=16, date=20, month=4, year=2019.
+
+        + For ranges provide a tuple of start and end values
+        E.g., for first half of 2019 provide: hour=(0, 23), date=(1, 31), month=(1, 6), year=2019.
+
+        + Events of interest:
+            - Push
+            - Forks
+            - Stars
+            - Label
+            - Issues
+            - Status
+            - Issue Comment
+            - Commit Comment
+            - Pull Request Event
+        """
         self.date = date
         self.year = year
         self.hour = hour
@@ -141,9 +134,9 @@ class Crawler:
             A possibly invalid JSON string
 
         Returns
-        ------- 
-        bool: 
-            True is the provided string is a valid json. False otherwise. 
+        -------
+        bool:
+            True is the provided string is a valid json. False otherwise.
         """
         try:
             json.loads(possible_json_string)
@@ -155,7 +148,7 @@ class Crawler:
         """
         Converts user provided date range into a GH Archive URL.
 
-        GH Archive uses a specific string format to encode the data url. This method formats user provided date-range into a URL that can be queried. 
+        GH Archive uses a specific string format to encode the data url. This method formats user provided date-range into a URL that can be queried.
 
         Yields
         ------
@@ -198,12 +191,12 @@ class Crawler:
         json_data: dict
             The JSON payload to verify.
         filter_set: set
-            The set of filters to match against. 
+            The set of filters to match against.
 
         Returns
         -------
         bool:
-            True if the current event is in the selected events 
+            True if the current event is in the selected events
         """
         if json_data['type'] in filter_set:
             return True
@@ -217,7 +210,7 @@ class Crawler:
         Parameters
         ----------
         mined_url: str
-            URL of the GH Archive json.gz file.  
+            URL of the GH Archive json.gz file.
 
         Returns
         -------
@@ -248,7 +241,7 @@ class Crawler:
         """
 
         for mined_url in self._daterange2url():
-            logging.info("\n[+] Processing {}\n".format(mined_url))
+            logging.info("Processing {}".format(mined_url))
 
             key = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
             all_events = self._url2dictlist(mined_url)
@@ -272,7 +265,7 @@ class Crawler:
 
         Returns
         -------
-        DataFrame: 
+        DataFrame:
             All mined data as a pandas DataFrame
         """
 
@@ -282,7 +275,8 @@ class Crawler:
         self._events_dataframe()
         return self.mined_data_df
 
-    def save_events_as_csv(self, save_path: Path = root.parent.joinpath('data')) -> None:
+    def save_events_as_csv(self,
+                           save_path: Path = root.joinpath('data')) -> None:
         """
         Generate a CSV file with all the mined attributes
 
@@ -292,13 +286,13 @@ class Crawler:
             Save path as a string.
         """
 
-        for fname, data_df in self.get_events_as_dataframe():
+        for fname, data_df in self.get_events_as_dataframe().items():
             logging.debug("[+] Processing file {}.csv".format(fname))
             save_location = save_path.joinpath(fname + '.csv')
             data_df.to_csv(save_location)
 
     def save_events_as_json(self,
-                            save_path: Path = root.parent.joinpath('data'), file_name: str = 'jan2020.json') -> None:
+                            save_path: Path = root.joinpath('data')) -> None:
         """
         Generate a JSON file with all the mined attributes
 
@@ -308,7 +302,8 @@ class Crawler:
             Save path as a string.
         """
 
-        for fname, data_df in self.get_events_as_dataframe():
+        for fname, data_df in self.get_events_as_dataframe().items():
+            logging.debug("[+] Processing file {}.json".format(fname))
             save_location = save_path.joinpath(fname + '.json')
             data_df.to_json(save_location)
 
