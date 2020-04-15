@@ -7,6 +7,15 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+#
+commit_graph/code_author_interaction_graphs/
+commit_graph/commit_data/
+commit_graph/tmp_repo/
+tmp_repo/
+*.json
+.idea/
+commit_graph/tmp_repo/
+commit_graph/commit_data/
 .Python
 build/
 develop-eggs/
