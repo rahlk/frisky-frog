@@ -306,8 +306,3 @@ class Crawler:
             logging.debug("[+] Processing file {}.json".format(fname))
             save_location = save_path.joinpath(fname + '.json')
             data_df.to_json(save_location)
-
-
-if __name__ == '__main__':
-    crawler = Crawler()
-    crawler._url2dictlist()
