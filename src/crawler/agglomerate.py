@@ -93,25 +93,30 @@ class Agglomerate:
             fname = hourly_data.stem
             try:
                 datetime_obj = datetime.strptime(fname, "%Y-%m-%d-%H")
-            except ValueError:  # This catches and ignores invalid date ranges.
+            except ValueError:  # This catches and ignores invalid dates.
                 continue
             key = self._datetime_to_key(datetime_obj, granularity='daily')
-            unmerged[key].append(pd.read_csv(hourly_data))
+            dframe = pd.read_csv(hourly_data, index_col=0)
+            unmerged[key].append(dframe)
 
         for day, df_collection in unmerged.items():
             logging.info("Processing hourly-to-daily for {}".format(day))
             coarser_df = df_collection[0]
-            for next_df in df_collection[1:]:
-                coarser_df = coarser_df.set_index('Unnamed: 0').add(
-                    next_df.set_index('Unnamed: 0'), fill_value=0).reset_index()
-                coarser_df.sort_values(
-                    by='TotalEvents', ascending=False, inplace=True)
-                coarser_df = coarser_df.set_index('Unnamed: 0')
-                coarser_df = coarser_df.rename(
-                    index=['Unnamed: 0', "Repository"])
+            for i, next_df in enumerate(df_collection[1:]):
+                coarser_df = coarser_df.add(next_df, fill_value=0)
 
-            coarser_df.to_csv(root.joinpath('data/daily/{}.csv'.format(day)))
+            # ==============================================================
+            # TODO 1: HACK! After hourly data has been regathered. Remove
+            # remove the following line, it becomes redundant.
+            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
+            # ==============================================================
+            coarser_df.sort_values(
+                by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+            coarser_df.to_csv(root.joinpath(
+                'data/daily/{}.csv'.format(day)), index_label="Repositories")
             pddframe[day] = coarser_df
+
+        return pddframe
 
     def hourly2weekly(self, also_save: bool = True) -> PandasDataFrame:
         """
@@ -135,25 +140,30 @@ class Agglomerate:
             fname = hourly_data.stem
             try:
                 datetime_obj = datetime.strptime(fname, "%Y-%m-%d-%H")
-            except ValueError:  # This catches and ignores invalid date ranges.
+            except ValueError:  # This catches and ignores invalid dates.
                 continue
             key = self._datetime_to_key(datetime_obj, granularity='weekly')
-            unmerged[key].append(pd.read_csv(hourly_data))
+            dframe = pd.read_csv(hourly_data, index_col=0)
+            unmerged[key].append(dframe)
 
         for week, df_collection in unmerged.items():
             logging.info("Processing hourly-to-week for {}".format(week))
             coarser_df = df_collection[0]
-            for next_df in df_collection[1:]:
-                coarser_df = coarser_df.set_index('Unnamed: 0').add(
-                    next_df.set_index('Unnamed: 0'), fill_value=0).reset_index()
-                coarser_df.sort_values(
-                    by='TotalEvents', ascending=False, inplace=True)
-                coarser_df = coarser_df.set_index('Unnamed: 0')
-                coarser_df = coarser_df.rename(
-                    index=['Unnamed: 0', "Repository"])
+            for i, next_df in enumerate(df_collection[1:]):
+                coarser_df = coarser_df.add(next_df, fill_value=0)
 
-            coarser_df.to_csv(root.joinpath('data/weekly/{}.csv'.format(week)))
+            # ==============================================================
+            # TODO 1: HACK! After hourly data has been regathered. Remove
+            # remove the following line, it becomes redundant.
+            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
+            # ==============================================================
+            coarser_df.sort_values(
+                by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+            coarser_df.to_csv(root.joinpath(
+                'data/weekly/{}.csv'.format(week)), index_label="Repositories")
             pddframe[week] = coarser_df
+
+        return pddframe
 
     def hourly2monthly(self, also_save: bool = True) -> PandasDataFrame:
         """
@@ -180,23 +190,27 @@ class Agglomerate:
             except ValueError:  # This catches and ignores invalid date ranges.
                 continue
             key = self._datetime_to_key(datetime_obj, granularity='monthly')
-            unmerged[key].append(pd.read_csv(hourly_data))
+            dframe = pd.read_csv(hourly_data, index_col=0)
+            unmerged[key].append(dframe)
 
         for month, df_collection in unmerged.items():
             logging.info("Processing hourly-to-monthy for {}".format(month))
             coarser_df = df_collection[0]
-            for next_df in df_collection[1:]:
-                coarser_df = coarser_df.set_index('Unnamed: 0').add(
-                    next_df.set_index('Unnamed: 0'), fill_value=0).reset_index()
-                coarser_df.sort_values(
-                    by='TotalEvents', ascending=False, inplace=True)
-                coarser_df = coarser_df.set_index('Unnamed: 0')
-                coarser_df = coarser_df.rename(
-                    index=['Unnamed: 0', "Repository"])
+            for i, next_df in enumerate(df_collection[1:]):
+                coarser_df = coarser_df.add(next_df, fill_value=0)
 
+            # ==============================================================
+            # TODO 1: HACK! After hourly data has been regathered. Remove
+            # remove the following line, it becomes redundant.
+            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
+            # ==============================================================
+            coarser_df.sort_values(
+                by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
             coarser_df.to_csv(root.joinpath(
-                'data/monthly/{}.csv'.format(month)))
+                'data/monthly/{}.csv'.format(month)), index_label="Repositories")
             pddframe[month] = coarser_df
+
+        return pddframe
 
     def agglomerate_all(self,
                         also_save: bool = False,
@@ -223,6 +237,6 @@ class Agglomerate:
 
 if __name__ == "__main__":
     agg = Agglomerate()
-    daily = agg.hourly2daily()
+    # daily = agg.hourly2daily()
     daily = agg.hourly2weekly()
     daily = agg.hourly2monthly()
