@@ -11,9 +11,8 @@ root = Path(os.path.abspath(os.path.join(
 if root.joinpath('src') not in sys.path:
     sys.path.append(str(root.joinpath('src')))
 
-
-from crawler import Crawler
-
+from metrics import MetricsGetter
+from crawler import Crawler, Agglomerate
 
 if __name__ == "__main__":
     crawl = Crawler(hour=(0, 23), date=(1, 31), month=(8, 12), year=2019)

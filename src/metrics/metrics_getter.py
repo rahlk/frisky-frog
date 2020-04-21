@@ -203,13 +203,13 @@ class MetricsGetter:
             all_events = self._url2dictlist(mined_url)
 
         print(json.dumps(self.data, indent=2),
-              file=open('jan_2020_metrics.json', 'w+'))
+              file=open('feb_2020_metrics.json', 'w+'))
         set_trace()
 
 
 if __name__ == "__main__":
     # Initialize data Crawler.
-    crawler = Crawler(month=1, year=2020)
+    crawler = Crawler(month=2, year=2020)
     m = MetricsGetter()
     jan_2020 = pd.read_csv(root.joinpath(
         'data', 'monthly', '2020-January.csv'), index_col=0)
