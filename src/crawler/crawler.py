@@ -126,6 +126,7 @@ class Crawler:
     @staticmethod
     def _is_valid_json(possible_json_string: str) -> bool:
         """
+        TODO: Move to utils. 
         Validates if a provided string is in a valid JSON format
 
         Parameters
@@ -203,6 +204,7 @@ class Crawler:
         else:
             return False
 
+    # TODO: Move the following methods to a different file
     def _url2dictlist(self, mined_url: str) -> List[Dict]:
         """
         Generates a json file with all the metadata.
@@ -255,7 +257,7 @@ class Crawler:
             mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
             mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
             mined_data_df['NumEvents'] = mined_data_df.astype(
-                bool).sum(axis=1)
+                bool).sum(axis=1) - 1
             mined_data_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
 

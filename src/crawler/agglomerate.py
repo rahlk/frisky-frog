@@ -105,11 +105,6 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
-            # ==============================================================
-            # TODO 1: HACK! After hourly data has been regathered. Remove
-            # remove the following line, it becomes redundant.
-            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
-            # ==============================================================
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
             coarser_df.to_csv(root.joinpath(
@@ -152,11 +147,6 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
-            # ==============================================================
-            # TODO 1: HACK! After hourly data has been regathered. Remove
-            # remove the following line, it becomes redundant.
-            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
-            # ==============================================================
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
             coarser_df.to_csv(root.joinpath(
@@ -199,11 +189,6 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
-            # ==============================================================
-            # TODO 1: HACK! After hourly data has been regathered. Remove
-            # remove the following line, it becomes redundant.
-            coarser_df['NumEvents'] = coarser_df.astype(bool).sum(axis=1)
-            # ==============================================================
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
             coarser_df.to_csv(root.joinpath(
@@ -237,6 +222,6 @@ class Agglomerate:
 
 if __name__ == "__main__":
     agg = Agglomerate()
-    # daily = agg.hourly2daily()
+    daily = agg.hourly2daily()
     daily = agg.hourly2weekly()
     daily = agg.hourly2monthly()
