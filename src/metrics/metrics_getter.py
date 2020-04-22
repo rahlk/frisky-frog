@@ -203,7 +203,7 @@ class MetricsGetter:
             logging.info(" METRICS GETTER: Processing {}".format(mined_url))
             all_events = self._url2dictlist(mined_url)
 
-        if save_loc:
+        if save_name:
             print(json.dumps(self.data, indent=2),
                   file=open(root.joinpath("data", "metrics", save_name), 'w+'))
         else:
