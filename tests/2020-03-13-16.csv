@@ -1114,7 +1114,7 @@ Pajagit/htest,4.0,0.0,4.0,0.0,0.0,0.0,8.0
 Omelettesheep/Omelettesheep.github.io,5.0,0.0,3.0,0.0,0.0,0.0,8.0
 vexx32/PSWordCloud,8.0,0.0,0.0,0.0,0.0,0.0,8.0
 palantir/dialogue,5.0,0.0,3.0,0.0,0.0,0.0,8.0
-Core-Techs-Git/pdb_requester,4.0,0.0,4.0,0.0,0.0,0.0,8.0
+Core-Techs-Git/ipdb_requester,4.0,0.0,4.0,0.0,0.0,0.0,8.0
 rgrvaldes/hello-world,4.0,0.0,4.0,0.0,0.0,0.0,8.0
 Jevgenijs-C/No-Name,4.0,0.0,4.0,0.0,0.0,0.0,8.0
 vector-im/riot-web,2.0,0.0,0.0,5.0,1.0,0.0,8.0
@@ -8889,7 +8889,7 @@ OverlordA/pattern_front_ts,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 vrhk/vrhk.github.io,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 imjoehaines/sihae,1.0,0.0,1.0,0.0,0.0,0.0,2.0
 SethSenpai/singleLEDLibrary,1.0,0.0,1.0,0.0,0.0,0.0,2.0
-greenplum-db/gpdb,1.0,0.0,1.0,0.0,0.0,0.0,2.0
+greenplum-db/gipdb,1.0,0.0,1.0,0.0,0.0,0.0,2.0
 mikareich/wetter,1.0,0.0,0.0,0.0,0.0,1.0,2.0
 AJARProject/AJ_Tools_UnitTest,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 Kvin3324/bizzy,2.0,0.0,0.0,0.0,0.0,0.0,2.0
@@ -9194,7 +9194,7 @@ abacusorg/AbacusSummit,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 muyuuuu/muyuuuu.github.io,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 google/web-stories-wp,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 Koell/Catroid,2.0,0.0,0.0,0.0,0.0,0.0,2.0
-IASA-GR/appdb-is-publisher,2.0,0.0,0.0,0.0,0.0,0.0,2.0
+IASA-GR/apipdb-is-publisher,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 mquintal/multi-docker,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 polcosta23/test,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 USEPA/FoodWaste,2.0,0.0,0.0,0.0,0.0,0.0,2.0
@@ -9686,7 +9686,7 @@ alexrodriguezlop/curso-tdd,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 demo4echo/EchoPrime,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 CoderdojoDelft/CoderdojoDelft.github.io,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 crydemon/spark-study,2.0,0.0,0.0,0.0,0.0,0.0,2.0
-millajoki/pdb-check,2.0,0.0,0.0,0.0,0.0,0.0,2.0
+millajoki/ipdb-check,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 catalyst-network/Catalyst,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 Sakhiyev/Web-Development,2.0,0.0,0.0,0.0,0.0,0.0,2.0
 monitoror/monitoror,1.0,0.0,0.0,1.0,0.0,0.0,2.0
@@ -12878,7 +12878,7 @@ sanogotech/microblog,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 renodor/portfolio,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 plone/Products.CMFFormController,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 estufa-cin-ufpe/AUTECLA-Embedded,1.0,0.0,0.0,0.0,0.0,0.0,1.0
-TvBreukelen/fnpdbservices,1.0,0.0,0.0,0.0,0.0,0.0,1.0
+TvBreukelen/fnipdbservices,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 umuss/Snake-DLV,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 jacquelynmoschella/sohxahguu,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 mouncif/Site-web-E-learning-partie2,1.0,0.0,0.0,0.0,0.0,0.0,1.0
@@ -21111,7 +21111,7 @@ renovate-bot/release-please,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 bcochofel/dotfiles,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 renovate-bot/python-billingbudgets,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 mdorn/python-okta-multidemo,1.0,0.0,0.0,0.0,0.0,0.0,1.0
-NYCPlanning/db-cpdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
+NYCPlanning/db-cipdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 3playmedia-dev/ey-cookbooks-stable-v6,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 renovate-bot/python-webrisk,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 Hrafnir/stp_flask_1,1.0,0.0,0.0,0.0,0.0,0.0,1.0
@@ -27924,7 +27924,7 @@ SabreNicolas/LeBonCoin,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 sioncamara/hungry-story,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 KaydemonLP/Open-Fortress-Source,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 ninalutz/ninalutz.github.io,1.0,0.0,0.0,0.0,0.0,0.0,1.0
-dyozie/gpdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
+dyozie/gipdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 CSCfi/antero,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 gs1/interpretGS1scan,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 morewings/webstorm_settings,1.0,0.0,0.0,0.0,0.0,0.0,1.0
@@ -31203,7 +31203,7 @@ nazreenpe/techtonica-assignments,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 kwonl-kusitms/KUSITMS-android-material,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 SpareBank1/jobbsb1,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 tugraz-isds/systemds,1.0,0.0,0.0,0.0,0.0,0.0,1.0
-mkiyama/gpdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
+mkiyama/gipdb,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 mariusfranzen/RealbridgeApptestPrism,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 jatimix/spacemacsconf,1.0,0.0,0.0,0.0,0.0,0.0,1.0
 MomenSherif/linkedin,1.0,0.0,0.0,0.0,0.0,0.0,1.0

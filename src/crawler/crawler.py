@@ -7,7 +7,7 @@ import logging
 import requests
 import pandas as pd
 from io import BytesIO
-from pdb import set_trace
+from ipdb import set_trace
 from itertools import product
 from urllib3 import PoolManager
 from collections import defaultdict
@@ -85,6 +85,16 @@ class Crawler:
         self.event_set = event_set
         self.mined_data_df = defaultdict(lambda: None)
 
+    def set_date_range(self, hour: Union[DateRange, int] = (0, 23),
+                       date: Union[DateRange, int] = (1, 31),
+                       month: Union[DateRange, int] = (1, 12),
+                       year: Union[DateRange, int] = (2019, 2020)):
+        logging.info(" CRAWLER: Updating date range")
+        self.date = date
+        self.year = year
+        self.hour = hour
+        self.month = month
+
     def update_eventset(self, new_eventset: Iterable) -> None:
         """
         A setter method used to update the eventset.
@@ -147,6 +157,7 @@ class Crawler:
 
     def _daterange2url(self) -> URL:
         """
+        TODO: Move to Utils
         Converts user provided date range into a GH Archive URL.
 
         GH Archive uses a specific string format to encode the data url. This method formats user provided date-range into a URL that can be queried.
@@ -243,7 +254,7 @@ class Crawler:
         """
 
         for mined_url in self._daterange2url():
-            logging.info("Processing {}".format(mined_url))
+            logging.info(" CRAWLER: Processing {}".format(mined_url))
 
             key = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
             all_events = self._url2dictlist(mined_url)
@@ -280,7 +291,7 @@ class Crawler:
         return self.mined_data_df
 
     def save_events_as_csv(self,
-                           save_path: Path = root.joinpath('data')) -> None:
+                           save_path: Path = root.joinpath('data', 'hourly')) -> None:
         """
         Generate a CSV file with all the mined attributes
 

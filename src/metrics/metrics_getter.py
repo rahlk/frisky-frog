@@ -7,7 +7,7 @@ import logging
 import requests
 import pandas as pd
 from io import BytesIO
-from pdb import set_trace
+from ipdb import set_trace
 from datetime import datetime
 from itertools import product
 from urllib3 import PoolManager
@@ -37,14 +37,15 @@ DataCrawler = NewType('Crawler', Crawler)
 
 
 class MetricsGetter:
-    def __init__(self, top_N_repos: set = None, event_set: set = {
+    def __init__(self, event_set: set = {
             'PushEvent', 'IssuesEvent', 'PullRequestEvent'}):
         self.data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
-        self.top_N_repos = top_N_repos
         self.event_set = event_set
 
-    def set_top_N_repos(self, repo_set: set) -> None:
-        self.top_N_repos = repo_set
+    def set_top_K_repos(self, meta_data_file_name, K=1000) -> None:
+        meta_data = pd.read_csv(root.joinpath(
+            'data', 'monthly', meta_data_file_name))
+        self.top_N_repos = set(meta_data.index.tolist()[:K])
 
     @staticmethod
     def _is_valid_json(possible_json_string: str) -> bool:
@@ -197,22 +198,13 @@ class MetricsGetter:
         except OSError:
             pass
 
-    def populate(self, crawler: DataCrawler):
+    def populate(self, crawler: DataCrawler, save_name: str = ""):
         for mined_url in crawler._daterange2url():
-            logging.info("Processing {}".format(mined_url))
+            logging.info(" METRICS GETTER: Processing {}".format(mined_url))
             all_events = self._url2dictlist(mined_url)
 
-        print(json.dumps(self.data, indent=2),
-              file=open('feb_2020_metrics.json', 'w+'))
-        set_trace()
-
-
-if __name__ == "__main__":
-    # Initialize data Crawler.
-    crawler = Crawler(month=2, year=2020)
-    m = MetricsGetter()
-    jan_2020 = pd.read_csv(root.joinpath(
-        'data', 'monthly', '2020-January.csv'), index_col=0)
-    top_100 = set(jan_2020.index.tolist()[:100])
-    m.set_top_N_repos(repo_set=top_100)
-    m.populate(crawler)
+        if save_loc:
+            print(json.dumps(self.data, indent=2),
+                  file=open(root.joinpath("data", "metrics", save_name), 'w+'))
+        else:
+            print(json.dumps(self.data, indent=2))

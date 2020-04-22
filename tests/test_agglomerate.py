@@ -3,7 +3,7 @@ import sys
 import numpy
 import unittest
 from pathlib import Path
-from pdb import set_trace
+from ipdb import set_trace
 
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(

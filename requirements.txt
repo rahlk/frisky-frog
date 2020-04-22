@@ -1,7 +1,9 @@
+ipdb
 nose
 glob2
 scipy
 pandas
+pathos
 PTable
 scikit-learn
 matplotlib
