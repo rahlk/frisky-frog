@@ -78,6 +78,14 @@ class MetricsGetter:
             if repo_name in self.top_N_repos:
                 return True
         return False
+    
+    def _is_event_usable(self, json_data):
+        type = json_data["type"]
+        if type in self.event_set:
+            repo_name = json_data['repo']['name']
+            if repo_name in self.top_N_repos:
+                return True
+        return False
 
     def _update_data(self, repo, date, event):
         self.data[repo][date][event] += 1
@@ -105,11 +113,11 @@ class MetricsGetter:
             self._update_data(repo, date, 'PullRequestRejectionRate')
     
     def _process_create_event(self, data, date):
-        if data['type'] == 'RepositoryEvent' and data['action'] == 'created':
-            self.create_count[date] += 1
+        if data['type'] == 'RepositoryEvent':
+            payload = data['payload']
+            if payload['action'] == 'created':
+                self.create_count[date] += 1
         
-
-
     def _process_issue_event(self, data, date):
         repo = data['repo']['name']
         payload = data['payload']
@@ -210,8 +218,9 @@ class MetricsGetter:
                 for json_value in json_str.split('\n'):
                     if self._is_valid_json(json_value):
                         data = json.loads(json_value)
-                        if self._is_event_usable(data):
-                            self._process_event(data, date)
+                        self._process_create_event(data, date)
+                        # if self._is_event_usable(data):
+                        #     self._process_event(data, date)
         except OSError:
             pass
 
@@ -236,3 +245,26 @@ class MetricsGetter:
                   file=open(root.joinpath("data", "metrics", save_name), 'w+'))
         else:
             print(json.dumps(self.data, indent=2))
+
+    def populate_create_counts(self, crawler: DataCrawler, save_name: str = ""):
+        processed_date = set()
+        for mined_url in crawler._daterange2url():
+            full_date = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
+            try:
+                date = datetime.strptime(
+                    full_date, "%Y-%m-%d-%H").strftime("%m-%d-%Y")
+                if date not in processed_date:
+                    processed_date.add(date)
+                    logging.info(
+                        " METRICS GETTER: Processing date {}".format(date))
+                all_events = self._url2dictlist(mined_url)
+            except ValueError:
+                # Date is invalid. Skip.
+                pass
+
+        if save_name:
+            print(json.dumps(self.create_count, indent=2),
+                  file=open(root.joinpath("data", "measures", "repositories", save_name), 'w+'))
+        else:
+            print(json.dumps(self.create_count, indent=2))
+
