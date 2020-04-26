@@ -40,6 +40,8 @@ class MetricsGetter:
     def __init__(self, event_set: set = {
             'PushEvent', 'IssuesEvent', 'PullRequestEvent'}):
         self.data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        self.create_count = defaultdict(int)
+
         self.event_set = event_set
 
     def set_top_K_repos(self, K=10000) -> None:
@@ -101,6 +103,12 @@ class MetricsGetter:
         if action == 'closed' and not pull_request['merged']:
             # New Pull Request has been rejected
             self._update_data(repo, date, 'PullRequestRejectionRate')
+    
+    def _process_create_event(self, data, date):
+        if data['type'] == 'RepositoryEvent' and data['action'] == 'created':
+            self.create_count[date] += 1
+        
+
 
     def _process_issue_event(self, data, date):
         repo = data['repo']['name']
