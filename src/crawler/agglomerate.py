@@ -114,8 +114,15 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
+            num_events = coarser_df.astype(bool).sum(axis=1)
+            total_events = coarser_df.sum(axis=1)
+
+            coarser_df["TotalEvents"] = total_events
+            coarser_df["NumEvents"] = num_events
+
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+
             if also_save:
                 coarser_df.to_csv(root.joinpath(
                     'data/daily/{}.csv'.format(day)), index_label="Repositories")
@@ -162,11 +169,19 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
+            num_events = coarser_df.astype(bool).sum(axis=1)
+            total_events = coarser_df.sum(axis=1)
+
+            coarser_df["TotalEvents"] = total_events
+            coarser_df["NumEvents"] = num_events
+
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+
             if also_save:
                 coarser_df.to_csv(root.joinpath(
                     'data/weekly/{}.csv'.format(week)), index_label="Repositories")
+
             pddframe[week] = coarser_df
 
         return pddframe
@@ -208,8 +223,15 @@ class Agglomerate:
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
 
+            num_events = coarser_df.astype(bool).sum(axis=1)
+            total_events = coarser_df.sum(axis=1)
+
+            coarser_df["TotalEvents"] = total_events
+            coarser_df["NumEvents"] = num_events
+
             coarser_df.sort_values(
                 by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+
             if also_save:
                 coarser_df.to_csv(root.joinpath(
                     'data/monthly/{}.csv'.format(month)), index_label="Repositories")
@@ -217,8 +239,27 @@ class Agglomerate:
 
         return pddframe
 
+    def alltime(self):
+        """
+        Agglomerate all time top repos.
+        """
+        # unmerged = defaultdict(list)
+        # pddframe = defaultdict(lambda: None)
+
+        for i, monthly_data in enumerate(self.data_path.joinpath('monthly').glob('*.csv')):
+            monthly = pd.read_csv(monthly_data, index_col=0)
+            monthly = monthly.iloc[:1000000]
+            monthly.drop([
+                'CommitCommentEvent', 'ForkEvent', 'IssuesEvent', 'PullRequestEvent', 'PullRequestReviewCommentEvent', 'PushEvent'], axis=1, inplace=True)
+
+            if i == 0:
+                ranking = monthly
+            else:
+                ranking = ranking.add(monthly, fill_value=0)
+
+        set_trace()
+
 
 if __name__ == "__main__":
-    daily = agg.hourly2daily()
-    daily = agg.hourly2weekly()
-    daily = agg.hourly2monthly()
+    agg = Agglomerate()
+    agg.alltime()

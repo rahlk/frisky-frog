@@ -7,6 +7,9 @@ from ipdb import set_trace
 from functools import partial
 from pathos.multiprocessing import cpu_count, ProcessingPool
 
+import logging
+logging.basicConfig(format='[+] %(message)s', level=logging.INFO)
+
 # Add project source to path
 root = Path(os.path.abspath(os.path.join(
     os.getcwd().split("frisky-frog")[0], 'frisky-frog')))
@@ -14,8 +17,12 @@ root = Path(os.path.abspath(os.path.join(
 if root.joinpath('src') not in sys.path:
     sys.path.append(str(root.joinpath('src')))
 
+if root.joinpath('src') not in sys.path:
+    sys.path.append(str(root.joinpath('src')))
+
 from metrics import MetricsGetter
 from crawler import Crawler, Agglomerate
+from utils import json2repos
 
 
 def _crawler(arg1, crawler_obj):
@@ -44,8 +51,8 @@ def _metrics_getter(arg1, crawler_obj, metrics_obj):
     crawler_obj.set_date_range(**arg1)
     chosen_month = "{year}-{month:02d}".format(**arg1)
 
-    metrics_obj.set_top_K_repos(
-        K=1000, meta_data_file_name="{}.csv".format(chosen_month))
+    # metrics_obj.set_top_K_repos(
+    #     K=1000, meta_data_file_name="{}.csv".format(chosen_month))
     metrics_obj.populate(crawler_obj, save_name="{}.json".format(chosen_month))
 
     return chosen_month
@@ -71,6 +78,7 @@ if __name__ == "__main__":
     crawler = Crawler()
     agg = Agglomerate()
     metrics = MetricsGetter()
+    metrics.set_top_K_repos()
 
     deploy_crawer = partial(_crawler, crawler_obj=crawler)
 
@@ -82,8 +90,7 @@ if __name__ == "__main__":
     with ProcessingPool(num_cpu) as p:
         res = p.map(deploy_metrics_getter, kwarg_list)
 
-    print(res)
+    logging.info("Done computing metrics...")
 
-
-#     crawl = Crawler(hour=(0, 23), date=(1, 31), month=(8, 12), year=2019)
-#     crawl.save_events_as_csv()
+    json2repos(json_dir=root.joinpath('data', 'metrics'),
+               save_dir=root.joinpath('data', 'repositories'))

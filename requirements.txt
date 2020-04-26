@@ -11,3 +11,5 @@ virtualenv
 python-coveralls
 google-cloud-bigquery
 gitpython
+selenium
+

@@ -266,11 +266,6 @@ class Crawler:
                 mined_data_dict[event_type][repo_name] += 1
 
             mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
-            mined_data_df['TotalEvents'] = mined_data_df.sum(axis=1)
-            mined_data_df['NumEvents'] = mined_data_df.astype(
-                bool).sum(axis=1) - 1
-            mined_data_df.sort_values(
-                by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
 
             self.mined_data_df[key] = mined_data_df
 

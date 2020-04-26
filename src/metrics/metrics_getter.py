@@ -42,10 +42,10 @@ class MetricsGetter:
         self.data = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         self.event_set = event_set
 
-    def set_top_K_repos(self, meta_data_file_name, K=1000) -> None:
+    def set_top_K_repos(self, K=10000) -> None:
         meta_data = pd.read_csv(root.joinpath(
-            'data', 'monthly', meta_data_file_name))
-        self.top_N_repos = set(meta_data.index.tolist()[:K])
+            'data', 'active_repos.csv'), index_col=0)
+        self.top_N_repos = set(meta_data.index.tolist()[-K:])
 
     @staticmethod
     def _is_valid_json(possible_json_string: str) -> bool:
@@ -129,26 +129,35 @@ class MetricsGetter:
             prevAvgIssueCloseTime = self.data[repo][date]['AvgIssueCloseTime']
             prevIssueResolveRate = self.data[repo][date]['IssueResolutionRate']
             prevIssueCloseTime = prevAvgIssueCloseTime * prevIssueResolveRate
+
             # Add current issue close time
             issueCreateTime = datetime.strptime(
                 issue['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-            issueRetireTime = datetime.strptime(
-                issue['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+
+            if issue['closed_at'] is None:
+                issueRetireTime = issueCreateTime
+            else:
+                issueRetireTime = datetime.strptime(
+                    issue['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+
             currentIssueCloseTime = issueRetireTime - issueCreateTime
-            # Issue close time in days
             currentIssueCloseTime = currentIssueCloseTime.days
             currentIssueCloseTime += prevIssueCloseTime
+
             # Increment IssueResolutionRate
             self._update_data(repo, date, 'IssueResolutionRate')
-            # Divide current issueClosetime with current IssueResolutionRate\
+
+            # Divide current issueClosetime with current IssueResolutionRate
             currentAvgIssueCloseTime = currentIssueCloseTime / \
                 self.data[repo][date]['IssueResolutionRate']
+
             # Update Average Issue Close Time
             self.data[repo][date]['AvgIssueCloseTime'] = currentAvgIssueCloseTime
 
             # Has a bug been closed?
             if 'bug' in issue_labels:
                 self._update_data(repo, date, 'BugCloseRate')
+
             # Has a critical bug been closed?
             if 'critical' in issue_labels:
                 self._update_data(repo, date, 'CriticalBugCloseRate')
@@ -199,9 +208,20 @@ class MetricsGetter:
             pass
 
     def populate(self, crawler: DataCrawler, save_name: str = ""):
+        processed_date = set()
         for mined_url in crawler._daterange2url():
-            logging.info(" METRICS GETTER: Processing {}".format(mined_url))
-            all_events = self._url2dictlist(mined_url)
+            full_date = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
+            try:
+                date = datetime.strptime(
+                    full_date, "%Y-%m-%d-%H").strftime("%m-%d-%Y")
+                if date not in processed_date:
+                    processed_date.add(date)
+                    logging.info(
+                        " METRICS GETTER: Processing date {}".format(date))
+                all_events = self._url2dictlist(mined_url)
+            except ValueError:
+                # Date is invalid. Skip.
+                pass
 
         if save_name:
             print(json.dumps(self.data, indent=2),
