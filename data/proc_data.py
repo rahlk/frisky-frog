@@ -24,7 +24,7 @@ if root.joinpath('src') not in sys.path:
 
 def measure_json2table():
     for file in data.joinpath('measures', 'repositories', 'all').glob('*.json'):
-        with open(file, "r") as json_file:
+        with open(file, "r") as json_file:ßß
             set_trace()
 
 
