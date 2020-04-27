@@ -2,7 +2,9 @@ import os
 import sys
 import json
 import pandas
+import logging
 from pathlib import Path
+from pdb import set_trace
 
 # -- Update paths --
 # - Logging Config -
@@ -21,8 +23,10 @@ if root.joinpath('src') not in sys.path:
 
 
 def measure_json2table():
-    for file in data.joinpath('measures', 'repositories', 'all'):
+    for file in data.joinpath('measures', 'repositories', 'all').glob('*.json'):
         with open(file, "r") as json_file:
             set_trace()
-        
 
+
+if __name__ == "__main__":
+    measure_json2table()
