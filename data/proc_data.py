@@ -4,7 +4,9 @@ import json
 import pandas
 import logging
 from pathlib import Path
-from pdb import set_trace
+from ipdb import set_trace
+from datetime import datetime
+from collections import defaultdict
 
 # -- Update paths --
 # - Logging Config -
@@ -23,9 +25,19 @@ if root.joinpath('src') not in sys.path:
 
 
 def measure_json2table():
+    result_dict = defaultdict(int)
     for file in data.joinpath('measures', 'repositories', 'all').glob('*.json'):
-        with open(file, "r") as json_file:ßß
-            set_trace()
+        with open(file, "r") as json_file:
+            try:
+                json_str = json_file.read()
+                repos_created_dict = json.loads(json_str)
+                date = datetime.strptime(file.stem, "%Y-%m-%d")
+                count_repos_created = repos_created_dict['total_count']
+                result_dict[date] = count_repos_created
+            except:
+                set_trace()
+        
+    set_trace()
 
 
 if __name__ == "__main__":
