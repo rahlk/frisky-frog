@@ -86,6 +86,23 @@ class CollaborationGraph(ContextDecorator):
         
         return list_of_comments
 
+    def get_top_covid_related_repositories(self):
+        """
+        Returns top 100 covid related repos.
+        TODO: Parameterize the number (currently 100)
+
+        Returns
+        -------
+        list[str]:
+            A list of repos each item in the list is a string formated as :owner/:name
+        """
+        covid_url = "https://api.github.com/search/repositories?q=covid+OR+coronavirus+OR+2019-ncov+OR+covid19+OR+SARS-CoV-2+created%3A2020-01-31..2020-04-29&s=forks&per_page=100"
+        response = self.timed_requests(covid_url, auth=(
+            os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD']))
+        json_response = json.loads(response.text)
+        top_100_repos = [value['full_name']
+                         for value in json_response['items']]
+        return top_100_repos
 
     def get_top_covid_related_repositories(self):
         """
@@ -101,7 +118,8 @@ class CollaborationGraph(ContextDecorator):
         response = self.timed_requests(covid_url, auth=(
             os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD']))
         json_response = json.loads(response.text)
-        top_100_repos = [value['full_name'] for value in json_response['items']]
+        top_100_repos = [value['full_name']
+                         for value in json_response['items']]
         return top_100_repos
 
 
@@ -150,6 +168,7 @@ class CollaborationGraph(ContextDecorator):
             with open(save_name, 'w+') as json_save_path:
                 print(json.dumps(comments_dict, indent=2), file=json_save_path)
 
+    def _get_adjacancy_
 
 
 if __name__ == "__main__":
@@ -159,5 +178,3 @@ if __name__ == "__main__":
     with CollaborationGraph() as collab_graph:
         collab_graph()
 
-
-    
