@@ -6,6 +6,7 @@ import certifi
 import logging
 import requests
 import pandas as pd
+from tqdm import tqdm
 from io import BytesIO
 from ipdb import set_trace
 from itertools import product
@@ -37,10 +38,10 @@ class Crawler:
                  date: Union[DateRange, int] = (1, 31),
                  month: Union[DateRange, int] = (1, 12),
                  year: Union[DateRange, int] = (2019, 2020),
-                 event_set: set = {'PushEvent', 'ForkEvent', 'StarEvent',
-                                   'LabelEvent', 'IssuesEvent', 'StatusEvent',
+                 event_set: set = {'PushEvent', 'ForkEvent', 'StarEvent', 'IssuesEvent',
                                    'PullRequestEvent', 'IssuesCommentEvent',
-                                   'CommitCommentEvent', 'PullRequestReviewEvent', 'PullRequestReviewCommentEvent'}):
+                                   'CommitCommentEvent', 'PullRequestReviewEvent',
+                                   'PullRequestReviewCommentEvent'}):
         """
         A crawler for GH Archive (https://www.gharchive.org/).
 
@@ -83,13 +84,11 @@ class Crawler:
         self.hour = hour
         self.month = month
         self.event_set = event_set
-        self.mined_data_df = defaultdict(lambda: None)
 
     def set_date_range(self, hour: Union[DateRange, int] = (0, 23),
                        date: Union[DateRange, int] = (1, 31),
                        month: Union[DateRange, int] = (1, 12),
                        year: Union[DateRange, int] = (2019, 2020)):
-        logging.info(" CRAWLER: Updating date range")
         self.date = date
         self.year = year
         self.hour = hour
@@ -136,7 +135,7 @@ class Crawler:
     @staticmethod
     def _is_valid_json(possible_json_string: str) -> bool:
         """
-        TODO: Move to utils. 
+        TODO: Move to utils.
         Validates if a provided string is in a valid JSON format
 
         Parameters
@@ -248,42 +247,121 @@ class Crawler:
 
         return dict_list
 
+    def _process_pull_request_event(self, data: dict) -> str:
+        payload = data['payload']
+        action = payload['action']
+        pull_request = payload['pull_request']
+
+        incr = 1  # Increment counter by
+
+        if action == 'opened':
+            # New Pull Request has been opened
+            event_type = 'PullRequestOpened'
+
+        if action == 'closed':
+            # New Pull Request has been opened
+            event_type = 'PullRequestClosed'
+
+        if action == 'closed' and pull_request['merged']:
+            # New Pull Request has been merged
+            event_type = 'PullRequestMerged'
+
+        if action == 'closed' and not pull_request['merged']:
+            # New Pull Request has been rejected
+            event_type = 'PullRequestRejected'
+
+        else:
+            event_type = None
+
+        return event_type, incr
+
+    def _process_issue_event(self, data):
+        repo = data['repo']['name']
+        payload = data['payload']
+        action = payload['action']
+
+        incr = 1  # Increment counter by
+
+        if action == 'opened' or action == 'reopened':
+            # New Issue has been opened
+            event_type = 'IssueCreated'
+
+        elif action == 'closed':
+            # New Issue has been opened
+            event_type = 'IssueClosed'
+
+        else:
+            event_type = None
+
+        return event_type, incr
+
+
+    def _process_commit_event(self, data):
+        repo = data['repo']['name']
+        payload = data['payload']
+        num_distinct_commits = payload['distinct_size']
+        event_type = 'CommitEvent'
+        return event_type, num_distinct_commits
+
     def _events_dataframe(self) -> None:
         """
         Generate a DataFrame for all the mined attributes
         """
-
+        mined_data_df = defaultdict(lambda: None)
         for mined_url in self._daterange2url():
-            logging.info(" CRAWLER: Processing {}".format(mined_url))
-
             key = mined_url[mined_url.rfind("/") + 1:].split(".")[0]
             all_events = self._url2dictlist(mined_url)
             mined_data_dict = defaultdict(lambda: defaultdict(int))
-
             for event in all_events:
-                event_type = event['type']
+                event_name = event['type']
                 repo_name = event['repo']['name']
-                mined_data_dict[event_type][repo_name] += 1
 
-            mined_data_df = pd.DataFrame(mined_data_dict).fillna(0)
+                if event_name == "IssuesEvent":
+                    payload = event['payload']
+                    action = payload['action']
+                    if action == 'opened' or action == 'reopened':
+                        # New Issue has been opened
+                        event_type = 'IssueCreated'
+                    elif action == 'closed':
+                        # New Issue has been opened
+                        event_type = 'IssueClosed'
+                    else:
+                        event_type = 'OtherIssueEvent'
+                    mined_data_dict[event_type][repo_name] += 1
 
-            self.mined_data_df[key] = mined_data_df
+                elif event_name == "PullRequestEvent":
+                    payload = event['payload']
+                    action = payload['action']
+                    pull_request = payload['pull_request']
+                    if action == 'opened':
+                        # New Pull Request has been opened
+                        event_type = 'PullRequestOpened'
+                    if action == 'closed':
+                        # New Pull Request has been opened
+                        event_type = 'PullRequestClosed'
+                    if action == 'closed' and pull_request['merged']:
+                        # New Pull Request has been merged
+                        event_type = 'PullRequestMerged'
+                    if action == 'closed' and not pull_request['merged']:
+                        # New Pull Request has been rejected
+                        event_type = 'PullRequestRejected'
+                    else:
+                        event_type = 'OtherPullRequestEvent'
+                    mined_data_dict[event_type][repo_name] += 1
 
-    def get_events_as_dataframe(self) -> PandasDataFrame:
-        """
-        Generate a pandas file with all the mined attributes
+                elif event_name == "PushEvent":
+                    payload = event['payload']
+                    num_distinct_commits = payload['distinct_size']
+                    event_type = 'CommitEvent'
+                    mined_data_dict[event_type][repo_name] += num_distinct_commits
 
-        Returns
-        -------
-        DataFrame:
-            All mined data as a pandas DataFrame
-        """
+                else:
+                    event_type = event_name
+                    mined_data_dict[event_type][repo_name] += 1
 
-        if len(self.mined_data_df) > 0:
-            return self.mined_data_df
+            mined_data_df[key] = pd.DataFrame(mined_data_dict).fillna(0)
 
-        self._events_dataframe()
-        return self.mined_data_df
+        return mined_data_df
 
     def save_events_as_csv(self,
                            save_path: Path = root.joinpath('data', 'hourly')) -> None:
@@ -296,23 +374,20 @@ class Crawler:
             Save path as a string.
         """
 
-        for fname, data_df in self.get_events_as_dataframe().items():
-            logging.debug("[+] Processing file {}.csv".format(fname))
-            save_location = save_path.joinpath(fname + '.csv')
-            data_df.to_csv(save_location)
+        mined_data_df = self._events_dataframe()
+        for fname, data_df in mined_data_df.items():
+            if len(data_df):
+                logging.info(" Crawler Saving as {}.csv".format(fname))
+                save_location = save_path.joinpath(fname + '.csv')
+                data_df.to_csv(save_location, index_label="Repository")
+                saved = True
+            else:
+                saved = False
 
-    def save_events_as_json(self,
-                            save_path: Path = root.joinpath('data')) -> None:
-        """
-        Generate a JSON file with all the mined attributes
+        return saved
 
-        Parameters
-        ----------
-        save_path: str
-            Save path as a string.
-        """
 
-        for fname, data_df in self.get_events_as_dataframe().items():
-            logging.debug("[+] Processing file {}.json".format(fname))
-            save_location = save_path.joinpath(fname + '.json')
-            data_df.to_json(save_location)
+if __name__ == "__main__":
+    date = {"date": 31, "month": 3, "year": 2020, "hour": 20}
+    c = Crawler(**date)
+    c.save_events_as_csv()

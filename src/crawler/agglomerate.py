@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path, PosixPath
 from collections import defaultdict
 from typing import Dict, Tuple, List, Union, NewType
+from tqdm import tqdm
 
 # Logging Config
 logging.basicConfig(format='[++] %(message)s', level=logging.INFO)
@@ -94,7 +95,7 @@ class Agglomerate:
         unmerged = defaultdict(list)
         pddframe = defaultdict(lambda: None)
 
-        for hourly_data in self.data_path.joinpath('hourly').glob('*.csv'):
+        for hourly_data in tqdm(self.data_path.joinpath('hourly').glob('*.csv'), desc='[+] Agglomerator: Gathering hourly Data.'):
             fname = hourly_data.stem
             try:
                 datetime_obj = datetime.strptime(fname, "%Y-%m-%d-%H")
@@ -107,9 +108,7 @@ class Agglomerate:
                 dframe = pd.read_csv(hourly_data, index_col=0)
                 unmerged[key].append(dframe)
 
-        for day, df_collection in unmerged.items():
-            logging.info(
-                " AGGLOMERATE: Processing hourly-to-daily for {}".format(day))
+        for day, df_collection in tqdm(unmerged.items(), desc="[+] Agglomerator: Aggregating hourly Data."):
             coarser_df = df_collection[0]
             for i, next_df in enumerate(df_collection[1:]):
                 coarser_df = coarser_df.add(next_df, fill_value=0)
@@ -120,8 +119,7 @@ class Agglomerate:
             coarser_df["TotalEvents"] = total_events
             coarser_df["NumEvents"] = num_events
 
-            coarser_df.sort_values(
-                by=['NumEvents', 'TotalEvents'], ascending=False, inplace=True)
+            coarser_df = coarser_df.sort_values(by=['NumEvents', 'TotalEvents'], ascending=False)
 
             if also_save:
                 coarser_df.to_csv(root.joinpath(
