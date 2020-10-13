@@ -74,39 +74,3 @@ if __name__ == "__main__":
 
     with ProcessingPool(num_cpu) as p:
         res = p.map(par_deploy_func, kwarg_list)
-
-    # for date in kwarg_list:
-    #     par_deploy_func(date)
-
-
-
-
-# -------------------------------------------------------------------------------------------
-# ----------------------------------------- OLD STUFF ---------------------------------------
-# -------------------------------------------------------------------------------------------
-# def _metrics_getter(arg1, crawler_obj, metrics_obj):
-#     """
-#     Get Metrics.
-#     """
-#     crawler_obj.set_date_range(**arg1)
-#     chosen_month = "{year}-{month:02d}".format(**arg1)
-
-#     # metrics_obj.set_top_K_repos(
-#     #     K=1000, meta_data_file_name="{}.csv".format(chosen_month))
-#     metrics_obj.populate(crawler_obj, save_name="{}.json".format(chosen_month))
-
-#     return chosen_month
-
-
-# def _metrics_getter_repo_count(arg1, crawler_obj, metrics_obj):
-#     """
-#     Get Metrics.
-#     """
-#     crawler_obj.set_date_range(**arg1)
-#     chosen_month = "{year}-{month:02d}-{date:02d}".format(**arg1)
-
-#     # metrics_obj.set_top_K_repos(
-#     #     K=1000, meta_data_file_name="{}.csv".format(chosen_month))
-#     metrics_obj.populate_create_counts(crawler_obj, save_name="{}.json".format(chosen_month))
-
-#     return chosen_month
