@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import requests
+import pandas as pd
+import numpy
 from tqdm import tqdm
 from pathlib import Path
 from pdb import set_trace
@@ -10,6 +12,7 @@ from datetime import datetime
 from datetime import timedelta
 from collections import defaultdict
 from contextlib import ContextDecorator
+
 
 # - Add project source to path -
 root = Path(os.path.abspath(os.path.join(
@@ -20,7 +23,7 @@ if root.joinpath('src') not in sys.path:
     sys.path.append(str(root.joinpath('src')))
 
 
-class CollaborationGraph(ContextDecorator):
+class NonCovidCollaborationGraph(ContextDecorator):
     
     def __init__(self):
         pass
@@ -29,7 +32,7 @@ class CollaborationGraph(ContextDecorator):
         # - Add data dir -
         self.data_path = root.joinpath('data')
         # - Add save dir -
-        self.save_dir = self.data_path.joinpath("collaboration", "covid")
+        self.save_dir = self.data_path.joinpath("collaboration", "non-covid", "top-10-repos", "comments")
         # - API URL -
         self.GIT_API_URL = "https://api.github.com"
         # - Container to hold saved results -
@@ -73,7 +76,6 @@ class CollaborationGraph(ContextDecorator):
         while there_is_another_page:
             response = self.timed_requests(api_request_url, params=params, auth=(
                 os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD']))
-
             json_response = json.loads(response.text)
             list_of_comments.extend(json_response)
 
@@ -86,46 +88,27 @@ class CollaborationGraph(ContextDecorator):
         
         return list_of_comments
 
-    def get_top_covid_related_repositories(self):
+
+    def get_top__non_covid_related_repositories(self):
         """
-        Returns top 100 covid related repos.
-        TODO: Parameterize the number (currently 100)
+        Returns top 10 non covid related repos from /local/rkrsn/frisky-frog/data/active_repos.csv .
+        TODO: Parameterize the number (currently 10)
 
         Returns
         -------
         list[str]:
             A list of repos each item in the list is a string formated as :owner/:name
         """
-        covid_url = "https://api.github.com/search/repositories?q=covid+OR+coronavirus+OR+2019-ncov+OR+covid19+OR+SARS-CoV-2+created%3A2020-01-31..2020-04-29&s=forks&per_page=100"
-        response = self.timed_requests(covid_url, auth=(
-            os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD']))
-        json_response = json.loads(response.text)
-        top_100_repos = [value['full_name']
-                         for value in json_response['items']]
-        return top_100_repos
-
-    def get_top_covid_related_repositories(self):
-        """
-        Returns top 100 covid related repos.
-        TODO: Parameterize the number (currently 100)
-
-        Returns
-        -------
-        list[str]:
-            A list of repos each item in the list is a string formated as :owner/:name
-        """
-        covid_url = "https://api.github.com/search/repositories?q=covid+OR+coronavirus+OR+2019-ncov+OR+covid19+OR+SARS-CoV-2+created%3A2020-01-31..2020-04-29&s=forks&per_page=100"
-        response = self.timed_requests(covid_url, auth=(
-            os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD']))
-        json_response = json.loads(response.text)
-        top_100_repos = [value['full_name']
-                         for value in json_response['items']]
-        return top_100_repos
+        #get top 10 repos from csv
+        active_repos = pd.read_csv("/local/rkrsn/frisky-frog/data/active_repos.csv")
+        df = active_repos.Repository.tail(48) 
+        top_10_repos = df.values.tolist()
+        return top_10_repos[0:4]
 
 
     def __call__(self):
-        top_repos = self.get_top_covid_related_repositories()
-        for repo in top_repos[::-1]:
+        top_repos = self.get_top__non_covid_related_repositories()
+        for repo in top_repos:
             repo_collab_dict = defaultdict(None)
             repo_name = repo.split('/')[1]
             repo_owner = repo.split('/')[0]
@@ -168,13 +151,14 @@ class CollaborationGraph(ContextDecorator):
             with open(save_name, 'w+') as json_save_path:
                 print(json.dumps(comments_dict, indent=2), file=json_save_path)
 
-    def _get_adjacancy_
 
 
 if __name__ == "__main__":
     assert 'GITHUB_USERNAME' in os.environ, "Please set GITHUB_USERNAME as an environment"
     assert 'GITHUB_PASSWORD' in os.environ, "Please set GITHUB_PASSWORD as an environment"
 
-    with CollaborationGraph() as collab_graph:
+    with NonCovidCollaborationGraph() as collab_graph:
         collab_graph()
 
+
+    
